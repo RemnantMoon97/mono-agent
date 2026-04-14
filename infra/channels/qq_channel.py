@@ -83,7 +83,7 @@ async def _download_to_temp(
             ext = ext_map.get(ct, ".jpg")
             path = attachment_store.write_bytes(
                 resp.content,
-                prefix="akasic_qq_",
+                prefix="akashic_qq_",
                 suffix=ext,
             )
             paths.append(str(path))
