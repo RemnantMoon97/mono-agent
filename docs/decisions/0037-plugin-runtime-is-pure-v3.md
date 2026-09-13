@@ -6,7 +6,6 @@
 - supersedes：[0008](0008-plugin-runtime-publishes-only-committed-snapshots.md) 的 API v2 与 legacy host 选择
 - superseded by：无
 
-> 2026-09-02 对账：本决策的 pure-v3 runtime 结论仍有效；下文 E1～E4 是当时的迁移验收计划，已被当前 fleet、Mobile、公共 WebUI 候选 Gate 和发布流程拥有的真实环境验收取代。E1/E2 固定的 API 已随 v2 compatibility 删除，E4 又依赖不存在的 E3 runner，不能继续作为当前合并条件。
 
 ## 背景
 
@@ -29,7 +28,6 @@ Core 拥有 artifact、candidate、stable/latest、lease、journal、晋升与�
 3. Computer Use Linux 与 Context Pressure 退出已跟踪 fleet。卸载只移除安装清单与
    能力 cache；既有 `plugin-data` 默认保留，不因代码收敛而物理删除。
 4. 代码合并与 hua-home 正式替换分开。同一 clean head 必须通过 fleet source/API compatibility、
-   Mobile 与公共 WebUI 候选 Gate；正式 workspace 的备份、真实环境验收、切换和回滚由发布
    流程拥有并仍需单独授权。
 
 ```text
@@ -74,7 +72,6 @@ Core 拥有 artifact、candidate、stable/latest、lease、journal、晋升与�
   lifecycle、固定贡献 consumer、phase module 注入口或 EventBus-to-V3 类型桥。
 - 每个领域完成 candidate discard/promote、old lease drain、Effect/resource cleanup、进程内失败与
   子进程崩溃恢复；不为断电或物理停机扩张本轮范围。
-- 同一 clean Core head 运行 fleet source/API compatibility、Mobile 与公共 WebUI；发布流程
   另外用真实部署输入证明 `sessions.db/messages`、memory、plugin-data、artifact 与 pointer
   不发生未授权变化。
 - 完成状态必须由测试和 Gate 报告确认；还有 v2 consumer 、blocked scenario 或非同 head

@@ -35,7 +35,6 @@ verifier 和 stop。自定义 agent 只补 Akasic runtime 自身安装与 SDK �
 |---|---|---|
 | Host control | Docker Engine、Compose、Harbor pin、dataset artifact、uv binary | 缺失即在建实例前失败 |
 | Image OS | Linux/POSIX shell；setup 阶段可使用 root | Windows 或无 root setup 不进入当前 campaign |
-| Package manager | 缺少 Git 时支持 `apk`、`apt-get` 或 `yum` | 无受支持 manager 时 agent setup 失败 |
 | Runtime fetch | DNS、HTTPS、CA；可访问 Python/PyPI、DeepSeek、Dashscope | 不静默使用宿主依赖或假数据 |
 | Filesystem | `/app` 为 task 工作区；`/tmp` 和 `/logs` 可写 | source 复制入容器后设为只读；不 bind 宿主源码 |
 | Git history | source bundle 必须包含固定 migration baseline 与 candidate HEAD | 宿主和容器内分别用 Git 校验 |

@@ -45,7 +45,6 @@ validates, fills, and submits those values without returning them to you.
    each visible method and wait for the user to choose. Include `options` only
    when the user must choose between two or more visible sign-in methods. Set
    each option's `label` to just the short visible method, such as "Google",
-   "mobile number", or "email and password". Labels complete the phrase
    "Continue with {label}," so choose a label that makes sense in that context.
    Use the same secure request to collect any already-visible credential fields
    required by the selected method. Never ask for credentials through chat or
@@ -61,7 +60,6 @@ validates, fills, and submits those values without returning them to you.
    `browserAuth.request({ origin: new URL(await tab.url()).origin, fields: [], qr_code: true })`.
    Browser-client securely captures and decodes the visible QR code. Never
    inspect, print, copy, or reconstruct its destination URL yourself. The only
-   exception is a trusted native-mobile handoff error that explicitly provides
    a validated HTTPS sign-in URL: show the user that exact supplied URL, ask
    them to open it and report back when finished, and wait for their reply.
    Never expose another QR payload or derive a URL the error did not supply.

@@ -9,9 +9,7 @@
 
 ## 1. 这份设计解决什么问题
 
-2026-07-13 合并的 [PR #111](https://github.com/kachofugetsu09/akashic-agent/pull/111) 在上下文重试路径中加入了持久历史删除。重构的原始目标是让模型请求在窗口超限后缩小输入，并让重试结果跨进程保持一致。实现把“缩小本次模型窗口”解释成“让数据库永久只保留窗口内消息”，同时删除对应 embeddings。普通测试也被改成期待旧历史消失。
 
-2026-07-14 的 [PR #124](https://github.com/kachofugetsu09/akashic-agent/pull/124) 撤销了删除路径，并从备份和缓存恢复可恢复数据。修复后的实现保留数据库完整历史，只缩短当前进程中的 `session.messages`。事故已经止血，产生事故的组织和架构条件仍然存在：
 
 1. `history` 和 `trim` 同时描述三种不同对象。
 2. 上下文代码从 SessionManager 获得了超出职责的持久化写入权限。
@@ -29,7 +27,6 @@
 
 ### 2.1 PR #111 做了什么
 
-事故提交 [`82b6056d`](https://github.com/kachofugetsu09/akashic-agent/commit/82b6056d3bc0559c5b7f8aefcbcd02878efce852) 新增了以下路径：
 
 ```text
 DefaultReasoner.run_turn
@@ -57,7 +54,6 @@ DefaultReasoner.run_turn
 
 ### 2.2 PR #124 如何修复
 
-修复提交 [`a08e27d8`](https://github.com/kachofugetsu09/akashic-agent/commit/a08e27d8dd3e34b6c8b9e61d8bd6e52cc48b521b) 删除 `retained_message_ids` 参数和 `_delete_messages_not_retained_locked()`，把 `trim_history_async` 改为：
 
 1. 在 session lock 内计算保留的运行时消息。
 2. 只提交 session metadata 和尚未持久化的新增消息。
@@ -74,7 +70,6 @@ DefaultReasoner.run_turn
 DefaultReasoner.run_turn
   │
   ├─ source_history = get_history_since_consolidated(...)
-  ├─ _build_attempt_plans(total_history)
   │    ├─ full history + full dynamic sections
   │    ├─ full history + drop skills
   │    ├─ full history + drop memes

@@ -114,7 +114,6 @@ schema_lineages: []
 ## Final evidence
 
 - 相邻基线：`fca4c23bc827f5e73bbed88cd25ae55c82046454`；实施 worktree：`/mnt/data/coding/akasic-agent-worktrees/plugin-event-executor`；恢复 bundle：`/mnt/data/coding/akasic-agent/.backups/20260814-pre-plugin-event-executor-fca4c23b.bundle`。
-- typed event、Executor 与组合生命周期聚焦回归：`49 passed`；包含旧 Plugin v2、hot-reload、snapshot、安装/卸载、MCP、Skill、Job、Channel 和移动端调度的累计回归：`398 passed`。
 - 修改范围 Basedpyright：`0 errors, 0 warnings`；相关 `compileall` 与 `git diff --check` 通过。
 - change-impact Gate：`passed`；最终 report、`sourceDigest` 与 `planDigest` 在提交前的验证阶段冻结。
 - 未接入 legacy EventBus、Phase、正式 manifest 或外部插件 canonical source；未运行正式 Akashic workspace，未发送渠道消息或调用真实外部 API。

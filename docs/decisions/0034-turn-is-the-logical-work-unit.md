@@ -7,7 +7,6 @@
 
 ## 背景
 
-控制存储把每次执行记录称为 turn，但被动会话允许一次逻辑交互跨越多个中断 attempt。此前 Mobile 实时终态使用最后一次 attempt ID，SessionDB 历史使用首个 interaction ID，严格 canonical 合并因此会把同一逻辑交互误判为身份变化。
 
 ## 决策
 
@@ -25,7 +24,6 @@ proactive、每次 `message_push`、每次 schedule fire 和每个 spawn complet
 
 ## 结果
 
-- Mobile 协议事件同时携带执行 `turn_id` 与逻辑 `control_turn_id`，客户端严格校验两者各自的不变量。
 - 现有 `turns` 表仍保存 Attempt checkpoint，不迁移或删除既有记录。
 - 主动来源在发送边界分配逻辑 Turn，不取得目标 session 的推理 lane。
 - 旧客户端继续只读取 `turn_id`；新客户端使用 `control_turn_id` 完成 canonical 合并。

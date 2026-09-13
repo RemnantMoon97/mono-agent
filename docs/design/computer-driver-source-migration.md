@@ -153,7 +153,6 @@ reward 为 0，与原版 Browser + Desktop 相同。最终冻结镜像复验记�
 将测试复制到一次性容器后，`node --test /opt/computer/test/*.test.mjs` 验证源码 AX、标签和输入生命周期。
 
 两处插件镜像声明固定为已发布的 Linux amd64 manifest：
-`ghcr.io/kachofugetsu09/akashic-computer@sha256:9bd4f6e215b4848e91f0dbfea75a7b227faeba96268c422d62e81a9b64d5ac92`。
 该镜像由既有 CI 从 `a9a25b1f6106a20bab4e9a4f238540512747f738` 构建；拉取后核对 revision 标签和
 43 个 driver 文件与源码一致。本地 image ID 为 `sha256:544fb0a4024b21664af710ea276947f151c2f1b32b392131e92f719b1f65d9af`，
 它与 registry manifest digest 含义不同。MCP 启动仍检查 driver v2/source/ready。

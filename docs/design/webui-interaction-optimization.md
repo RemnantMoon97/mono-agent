@@ -1,6 +1,5 @@
 # WebUI 交互性能与组件边界优化设计
 
-- 状态：Web 阶段已实施；Android 真机阶段未开始
 - 关联条款：WEBUI-001～WEBUI-007
 - 关联决策：[0018](../decisions/0018-chat-webui-has-one-source-and-two-adapters.md)、[0023](../decisions/0023-akashic-tokens-own-material-3-semantics.md)
 - 上游设计：[共享对话 WebUI](shared-chat-webui.md)
@@ -28,11 +27,9 @@
 ┌──────────────────────┐  ┌──────────────────┐
 │ Presentation         │  │ Explicit adapters │
 │ native controls      │  │ WebSocket / HTTP  │
-│ focus / live regions │  │ Android bridge    │
 └──────────────────────┘  └──────────────────┘
 ```
 
-共享层只拥有中立消息合同、纯投影和可复用展示。桌面 WebSocket 与 Android bridge 保持两个明确 adapter；不把平台生命周期统一成一个隐式全局 store。
 
 ## 3. 交互覆盖矩阵
 
@@ -45,7 +42,6 @@
 | 模型与思考强度 | picker 同时拥有领域选择、focus 和 popover | 纯选择规则可测；完整方向键/Escape/焦点恢复；无 O(n²) 查找 | 已完成 `4e2d1b67` |
 | 编辑器、附件、发送、停止 | `main.tsx` 与 PromptInput context 共同拥有提交条件 | 提交状态单 owner；IME、拖放、附件 ready、send/stop E2E 全覆盖 | 已完成 `de4ad36e` |
 | 发送可见性与断线停止 | 旧 history 可覆盖乐观消息；socket 卡在 connecting 时发送和停止都无超时 | 提交先取消旧 history；连接 10 秒显式失败；停止可撤销尚未送达的发送并恢复输入 | 已完成（本 PR） |
-| 手机配对 | Dialog 内混合轮询、批准、关闭状态 | transport hook 与步骤视图分离；取消会中止请求并恢复焦点 | 已完成 `ca4dda2d` |
 | 设置连接与认证 | settings 表单集中在单文件；多类异步状态共用视图 | provider adapter、表单 state、credential flow 分离；错误聚焦与 live status 可用 | 已完成 `a69ca91b` |
 | 记忆设置 | 保存、向量验证和表单状态共用组件 | adapter/controller/view 分离；错误聚焦、取消和保存 E2E 可用 | 已完成 `df753f6f` |
 | 错误恢复与空状态 | 入口 lazy chunk 失败会越过 Suspense 形成空白页 | 错误能被感知、重试不重复提交、懒加载失败有边界 | 已完成 `949ee9d8` |
@@ -77,7 +73,6 @@ Showcase 只用于展示候选，不计入产品交互完成状态；正式 Chat
 - 新请求替代旧请求时 abort 旧 owner；被取消的结果不得提交到新 surface 或 session。
 - lazy chunk 加载失败交给相邻 Error Boundary，不提供假内容或静默 fallback。
 - 每项优化开始前创建 Git bundle；提交可以独立 revert。性能报告只作证据，不自动提升 baseline 或放宽预算。
-- 本设计不写正式 Akashic workspace，不发布移动 WebUI，不修改 Android release pointer。
 
 ## 6. 当前已测基线
 
@@ -93,8 +88,6 @@ Showcase 只用于展示候选，不计入产品交互完成状态；正式 Chat
 | `4e2d1b67` | model picker 关闭态（48 模型） | 0 个隐藏 option；129 个 DOM 元素；方向键/Home/End/Escape 通过 |
 | `4e2d1b67` | composer 240 字 + 附件 + 双击停止 | 输入 P75 422.5ms；2 个 `turn.stop` |
 | `de4ad36e` | composer 240 字 + 附件 + 双击停止 | 输入 P75 399.2ms；1 个 `turn.stop`；1 次上传/1 次发送 |
-| `de4ad36e` | 手机配对 | 初始 JS 267,839B gzip；取消不 abort 在途请求；配对 P75 840.1ms；heap P75 11.06MB |
-| `ca4dda2d` | 手机配对 | 初始 JS 253,509B gzip；取消 abort 1 个在途请求；配对 P75 835.5ms；heap P75 9.84MB |
 | `ca4dda2d` | 设置连接输入、发现模型、Codex 登录（48 连接） | 输入 P75 249.1ms；发现 2 请求；登录 2 请求；heap P75 8.57MB |
 | `a69ca91b` | 设置连接输入、发现模型、Codex 登录（48 连接） | 输入 P75 182.8ms；发现 1 请求；登录 1 请求；heap P75 8.32MB |
 | `a69ca91b` | 记忆与向量模型同步双击 | 向量验证 2 请求；记忆保存 2 请求；关闭焦点未恢复 |
@@ -112,7 +105,6 @@ Runtime 三轮同机对比：tab 切换 P75 降低 7.6%，详情请求减少 50%
 
 编辑器三轮同机对比：240 字逐键输入 P75 从 422.5ms 到 399.2ms（-5.5%），该数字包含 Playwright 逐键调度，只作方向性证据。确定性收益是输入 state 从 App root 下沉到 `DesktopComposer`，同步双击停止从 2 个 frame 降到 1 个；附件仍恰好 1 次上传并出现在唯一 `message.send`。baseline 报告为 `artifacts/webui-performance/browser-2026-08-12T12-58-19.141Z.json`（SHA-256 `74c9b3b44dcf1fa9f33cc7330ab30f02568ecb570ef59a0969d3aac1067f6f32`），after 为 `artifacts/webui-performance/browser-2026-08-12T13-02-03.613Z.json`（SHA-256 `0954442941b6132c3faa21de1da2a477eb3667f44d4bd8beda805e33c8fd4091`）。
 
-手机配对使用同一 Chromium 150 和延迟 300ms 的真实 HTTP fixture 对比。初始 JS 减少 14,330B gzip（-5.35%），配对代码在首屏资源中为 0、打开后按需加载 1 个 chunk；关闭会 abort 恰好 1 个已发出的创建请求，完成后焦点恢复保持 100%。配对闭环 P75 840.1ms 到 835.5ms、最大长任务和布局偏移均为 0，不声称时延提速；heap P75 从 11.06MB 到 9.84MB（-11.1%）只作同机方向性证据。baseline 为三轮 `artifacts/webui-performance/browser-2026-08-12T13-12-47.826Z.json`（SHA-256 `ea99066d38d2b9398d489e219e5a937d205bd1a7873d73e01a54d061e174d7d4`），after 为五轮 `artifacts/webui-performance/browser-2026-08-12T13-23-36.877Z.json`（SHA-256 `1bf25991e9cdaed622a17c50e9909dfb3badcb55bf2b37e7ccbcc788964ed93d`）。
 
 设置连接与认证使用同一 Chromium 150、48 个连接和真实延迟 HTTP fixture 对比。连接名称逐键输入 P75 从 249.1ms 到 182.8ms（-26.6%），原因是表单 state 从 52 张连接卡片的页面根下沉到 dialog controller；发现模型同步双击从 2 个请求降到 1 个，Codex 登录同步双击也从 2 个请求降到 1 个。首屏 ready P75 925ms 到 924ms、长任务和布局偏移均为 0；heap P75 从 8.57MB 到 8.32MB（-2.9%）只作方向性证据。Radix 统一拥有 modal inert、Tab 环绕、Escape、标签 ID，条件挂载场景显式恢复焦点到打开者。baseline 为三轮 `artifacts/webui-performance/browser-2026-08-12T13-37-28.981Z.json`（SHA-256 `09223818c767fd127dcf6ed1937b70026fa796cab31e5e8e289af1c9f08e10cb`），after 为五轮 `artifacts/webui-performance/browser-2026-08-12T13-52-57.913Z.json`（SHA-256 `ea0f04aac91155cabb6d5219d581d627b5987655eceeec8cdda06ee572da2131`）。
 
@@ -128,7 +120,6 @@ Runtime 三轮同机对比：tab 切换 P75 降低 7.6%，详情请求减少 50%
 
 自动滚动现在由 `desktop-auto-scroll.tsx` 独立拥有，只按最后一条消息 identity 订阅流式 store，并用尾消息 role、正文/过程 revision 和消息数量触发滚动；用户主动上滚时仍不抢回底部，新用户消息仍忽略旧 escape 锁主动到底。两条 `react-hooks/exhaustive-deps` warning 清零，`npm run lint -- --max-warnings 0` 通过。五轮浏览器对比中 history P75 126.9ms 到 135.1ms、600 delta stream P75 1,413.6ms 到 1,429.5ms，属于同机波动；两者 long task、layout shift 仍为 0，最大 frame gap 保持 16.8ms。首屏 JS 从 254,018B 降到 253,897B gzip（-121B），CSS 不变。baseline 为 `artifacts/webui-performance/browser-2026-08-12T14-59-24.634Z.json`，after 为 `artifacts/webui-performance/browser-2026-08-12T15-07-29.056Z.json`（SHA-256 `e39ca98bea220417f030a02f4f72a8a4a0d554543bccbffa8798bca98aeb1396`）。
 
-Chat 源码依赖图审计覆盖 103 个 TypeScript/TSX 模块：改动前由 `settings-data.ts` 的 Memory 类型反向引用与 `memory-settings-data.ts` 的 HTTP helper 引用形成 1 条循环；改动后通用 transport/error 映射由 `settings-http.ts` 拥有，依赖环降到 0。`module-boundaries.test.mjs` 会扫描全部本地静态和动态 import，持续阻止循环以及其他模块反向依赖 `main.tsx`/`mobile-native.tsx`。五轮浏览器对比中 history P75 135.1ms 到 133.5ms、600 delta stream P75 1,429.5ms 到 1,440.8ms，属于测量波动；所有 long task、layout shift 仍为 0，frame gap 最大 16.8ms，完整交互计数保持通过。after 为 `artifacts/webui-performance/browser-2026-08-12T15-18-13.629Z.json`（SHA-256 `4586bb3b50710575b6f28195eb64233f70cef7fd037968f31d0afd007340d2b2`）。
 
 桌面入口从 643 行降到 69 行，只拥有 theme/bootstrap、surface 选择、顶层 Suspense/Error Boundary 和 `createRoot`；产品状态与页面组合进入 `DesktopChatApp`，架构测试禁止入口重新引入 `useState`、`useEffect`、WebSocket 或 HTTP。五轮真实浏览器对比中 history P75 133.5ms 到 144.2ms、session switch 102.3ms 到 97.2ms、600 delta stream 1,440.8ms 到 1,432.4ms，属于测量波动；所有 long task、layout shift 仍为 0，最大 frame gap 16.8ms，send/stop/upload 仍各 1 次，配对取消、设置认证、焦点和窄屏场景保持通过。首屏 JS 为 254,013B gzip，较上轮 253,897B 增加 116B，仍通过 416,768B 预算。after 为 `artifacts/webui-performance/browser-2026-08-12T15-27-06.829Z.json`（SHA-256 `39c555b46e4bcc806fec302bc6b3f7c234d2337f454c51c92270df1f91516a19`）。
 
@@ -136,7 +127,6 @@ Chat 源码依赖图审计覆盖 103 个 TypeScript/TSX 模块：改动前由 `s
 
 流式滚动场景现在先模拟用户向上滚轮逃逸，再输入 600 个 delta，断言页面不抢回底部；随后通过具名“滚动到底部”按钮恢复。首轮真实点击暴露按钮虽渲染但被底部编辑器遮挡，样式已将其提升到编辑器上方。五轮中 `streamPreservedScrollEscape`、`scrollReturnAvailable`、`scrollReturnReachedBottom` 均为 1；600 delta P75 为 1,451.1ms，long task、layout shift 为 0，最大 frame gap 16.8ms。history P75 127.4ms 到 161.9ms、session switch 90.8ms 到 101.1ms，没有对应代码热路径变化，记录为同机波动而不宣称退化或收益。after 为 `artifacts/webui-performance/browser-2026-08-12T16-04-12.518Z.json`（SHA-256 `2b2153e4ea5b44d22d15b1e0678d32eddc7c90cb6bbd35e6ad326b74d33cac7c`）。
 
-浏览器门禁引入仅开发期的 `axe-core`，逐轮扫描 Chat、模型选择器、手机配对、Settings、连接弹窗和 Runtime 六个正式 surface 的 WCAG 2 A/AA 规则。首轮发现 1 个 critical 无名称附件菜单按钮和配对流程 3 个 serious 文本对比度节点；修复后五轮均为 6 个 surface、0 个违规。history P75 为 133.7ms、session switch 93.3ms、600 delta stream 1,440.5ms，stream long task 与 layout shift 为 0，最大 frame gap 16.8ms。`axe-core` 不进入生产 import 或 bundle。after 为 `artifacts/webui-performance/browser-2026-08-12T16-22-54.284Z.json`（SHA-256 `b502eeb4718c5e441589f819e1601efeef165281960032b8ebb4ad9394dd9eee`）。
 
 ## 8. 最新 `main` 流式语义对账
 
@@ -152,12 +142,9 @@ Chat 源码依赖图审计覆盖 103 个 TypeScript/TSX 模块：改动前由 `s
 
 Web 阶段的产品交互矩阵已全部实施。最终结构审计覆盖 106 个 TypeScript/TSX 模块，循环依赖为 0；桌面入口为 69 行 bootstrap，产品 App 为 13 行组合层，controller 与 view 各自拥有副作用和展示。与最新 `main` 对账后，桌面专项回归为 32/32，共享 Web 状态回归为 125/125；消息、行级流式投影、插件 slot、terminal、响应式、可访问性和错误恢复保持通过。桌面与移动 Web 构建、lint 零 warning、typecheck 和构建预算均通过；公开 change-impact Gate 在最终 merge commit 后重新生成。
 
-本阶段没有执行 Pixel 7 WebView、Android Macrobenchmark 或 Perfetto，也没有修改或发布 Android 包、移动 WebUI release pointer 或正式 workspace。真机启动、Room → DTO → JSON → WebView 链路与 Android adapter 拆分属于后续移动端阶段，不能用本轮 Chromium 结果替代。
 
 ## 10. React 组织依据
 
 - [Sharing State Between Components](https://react.dev/learn/sharing-state-between-components)：每个独立状态保持单一 owner，需协同的交互由最近公共父层控制。
 - [Reusing Logic with Custom Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks)：Hook 抽取有语义的有状态逻辑，不复制状态本身。
 - [You Might Not Need an Effect](https://react.dev/learn/you-might-not-need-an-effect)：可从 props/state 派生的展示值在 render 期计算，不用 Effect 再同步一份。
-
-后续移动端工作继续使用同一能力矩阵，但单独记录 Android 真机指标，不修改本阶段 Web 基线来掩盖平台差异。

@@ -12,9 +12,7 @@
 | [0004](0004-cross-repository-evidence-is-an-immutable-combination.md) | accepted | 跨仓库证据绑定不可变组合 | GOV-005、MOB-002～MOB-004、TST-006～TST-008 |
 | [0005](0005-git-cursor-drives-one-shot-migrations.md) | superseded | Git cursor 驱动一次性兼容迁移 | MIG-001、MIG-002、WSP-003、BAK-001 |
 | [0006](0006-akasha-v2-is-the-canonical-explicit-memory-engine.md) | accepted | Akasha V2 是显式记忆的唯一算法实现 | MEM-009、SES-003、GOV-005、TST-002、TST-005 |
-| [0007](0007-mobile-plugin-control-and-data-planes-are-explicit.md) | accepted | 移动插件控制面与查询数据面显式分离 | MOB-001、MOB-003、MOB-006、PLG-003、PLG-011、TST-006～TST-008 |
 | [0008](0008-plugin-runtime-publishes-only-committed-snapshots.md) | superseded | 插件运行时只发布已提交快照 | PLG-001～PLG-008、GOV-005、TST-006～TST-008 |
-| [0009](0009-akasha-mobile-recall-preserves-semantic-lanes.md) | accepted | Akasha 移动卡片完整保留有界召回 lane | MOB-006、PLG-011、TST-006～TST-008 |
 | [0010](0010-provider-default-output-and-benchmark-diagnostics.md) | accepted | Provider 默认输出边界与 Benchmark 诊断边界 | RUN-006、TST-009 |
 | [0011](0011-benchmark-concurrency-six.md) | accepted | Benchmark 隔离实例并发上限提高到六 | TST-009、WSP-004、SH-001 |
 | [0012](0012-query-local-compaction-is-a-persisted-projection.md) | superseded | Query 内压缩是可持久重放的非破坏性投影 | CTX-001～CTX-007、SES-001、SES-005、CAP-001 |
@@ -24,10 +22,7 @@
 | [0016](0016-channel-delivery-uses-complete-logical-messages.md) | accepted | 渠道投递使用完整逻辑消息 | OUT-001～OUT-003、MOB-001、MOB-005、SES-005～SES-006 |
 | [0017](0017-one-person-companion-security-boundary.md) | accepted | 单一 Companion 的安全、容量与可恢复失败边界 | SEC-001～SEC-010、TST-001～TST-006 |
 | [0018](0018-chat-webui-has-one-source-and-two-adapters.md) | accepted | 对话 WebUI 使用一个源码真源和两个平台适配器 | WEBUI-001～WEBUI-003、MOB-001、TST-007～TST-008 |
-| [0019](0019-mobile-long-messages-use-bounded-events.md) | accepted | Mobile 长消息使用有界正文事件和紧凑终态 | MOB-001、MOB-003、MOB-005、MOB-007、SES-001 |
-| [0020](0020-mobile-history-content-uses-authenticated-http-ranges.md) | accepted | Mobile 历史长正文使用认证 HTTP Range 恢复 | MOB-001、MOB-003、MOB-006、MOB-007、SES-001、TST-005、TST-008 |
 | [0021](0021-yoyo-workspace-ledger-defines-migration-origin.md) | accepted | Yoyo workspace 账本定义迁移原点 | MIG-001、MIG-002、WSP-003、BAK-001 |
-| [0022](0022-mobile-webui-uses-server-selected-generations.md) | accepted | 移动 WebUI 使用服务端选择的不可变 generation | WEBUI-001～WEBUI-006、MOB-001～MOB-004、TST-006～TST-008 |
 | [0023](0023-akashic-tokens-own-material-3-semantics.md) | superseded | Akashic Token 拥有 Material 3 设计语义 | WEBUI-001～WEBUI-007 |
 | [0024](0024-plugin-self-validation-uses-stable-and-latest.md) | superseded | 插件自验证使用 stable/latest 与 session 级并发 | RUN-007、OUT-004、PLG-013、CTRL-003、TST-001～TST-006 |
 | [0025](0025-codex-style-same-turn-input.md) | accepted | 中断后的新 Attempt 续接同一 Logical Interaction | SES-007～SES-008、MEM-010～MEM-011、RUN-008、OUT-005 |
@@ -35,12 +30,10 @@
 | [0030](0030-session-context-compaction-ledger.md) | accepted / implemented | Session context compaction ledger 拥有模型窗口投影 | CTX-001～CTX-007、SES-001～SES-005、MEM-002、MEM-004、MEM-008、MEM-011、MIG-001、WSP-003、TST-001～TST-006 |
 | [0027](0027-runtime-models-use-generation-leases.md) | accepted / partially superseded by 0050 | 运行时模型切换使用 execution generation lease | RUN-009～RUN-012、ONB-001、CTX-001、PLG-003 |
 | [0028](0028-model-credentials-live-with-workspace-connections.md) | accepted | 模型凭据随 workspace connection 保存 | RUN-009～RUN-012、ONB-001、WSP-001、BAK-001 |
-| [0029](0029-main-gateway-reconciles-mobile-webui-stable.md) | accepted | main Gateway 对账移动 WebUI Stable | WEBUI-004～WEBUI-006、GOV-005、TST-006～TST-008 |
 | [0031](0031-stable-matching-head-allows-gateway-restart.md) | accepted / implemented | Stable 与本地 HEAD 一致时允许 Gateway 重启 | WEBUI-004～WEBUI-006、GOV-005、TST-006～TST-008 |
 | [0032](0032-host-bridge-preserves-host-equivalent-execution.md) | accepted | Host Bridge 保留宿主等价执行能力 | RUN-013～RUN-014、WSP-005、SH-001～SH-003 |
 | [0033](0033-local-agent-instructions-are-not-project-documents.md) | accepted | 本地 Agent 指令不属于版本化项目文档 | WBK-001～WBK-006、COM-001～COM-004 |
 | [0034](0034-turn-is-the-logical-work-unit.md) | accepted | Turn 是逻辑工作单元 | CTX-003、SES-007、SES-008、MEM-011、OUT-001、OUT-004、SCH-003 |
-| [0035](0035-mobile-protocol-delivery-is-phased.md) | accepted | 移动协议交付按变更性质分阶段 | MOB-008、MOB-006、TST-007、GOV-002 |
 | [0036](0036-plugin-composition-keeps-promotion-owner.md) | accepted | 插件组合内核保留现有晋升 owner | PLG-001～PLG-013、WSP-001～WSP-005、ERR-001、TST-001～TST-007 |
 | [0037](0037-plugin-runtime-is-pure-v3.md) | accepted / implemented | 插件运行时收敛为 pure v3 | PLG-001～PLG-014、WSP-001～WSP-005、ERR-001、TST-001～TST-008 |
 | [0038](0038-operator-trust-can-publish-offline-plugin-batches.md) | accepted | Operator 信任可以离线发布 exact 插件批次 | PLG-013、RUN-015、ERR-001 |
@@ -49,7 +42,6 @@
 | [0041](0041-turn-effects-and-memory-plugins-are-orthogonal.md) | accepted / implementing | Turn 副作用与 Memory 插件保持正交 | SES-001、SES-007～SES-008、MEM-002、MEM-009～MEM-011、PLG-001～PLG-014、RUN-003、RUN-007～RUN-009 |
 | [0042](0042-plugin-diagnostics-preserve-domain-owners.md) | accepted / implementing | 插件诊断保留领域 owner | OBJ-002、PLG-003、PLG-006、PLG-014～PLG-015、ERR-001 |
 | [0043](0043-paper-brand-tokens-replace-material-visual-semantics.md) | accepted | 纸张品牌 Token 取代 Material 视觉语义 | WEBUI-001～WEBUI-007 |
-| [0044](0044-akashic-channel-uses-web-and-mobile-adapters.md) | accepted | Akashic Channel 使用 Web 与 Mobile 两个 Adapter | AKC-001～AKC-003、MOB-001～MOB-008、SES-001～SES-008 |
 | [0045](0045-akashic-direct-messages-commit-before-notify.md) | accepted | Akashic 主动消息先提交 Session 再通知客户端 | AKC-001～AKC-003、MOB-002、MOB-005、MOB-008、OUT-001、OUT-003～OUT-004 |
 | [0046](0046-plugin-candidate-validation-is-incremental.md) | accepted / implemented | 插件候选只重建依赖闭包 | PLG-001～PLG-004、PLG-008～PLG-010、PLG-014 |
 | [0047](0047-provides-may-bind-one-tool.md) | partially superseded | 一个 provide 可以绑定一个 Tool | PLG-001～PLG-014、PRO-001～PRO-002 |
@@ -69,7 +61,6 @@
 | [0061](0061-archive-stopped-legacy-executions.md) | accepted | 已停止旧执行完整归档，不自动续跑 | SES-001、SES-003、WSP-001、BAK-001 |
 | [0062](0062-tools-flow-through-provider-views.md) | accepted / implemented | 工具通过 provider view 流向消费者 | CTX-004、CTX-007、PLG-003、PLG-008、PLG-009、PLG-014、PLG-016、PLG-018 |
 
-| [0063](0063-execution-failures-have-terminal-results.md) | accepted | 执行失败明确收尾，恢复依据原回执 | Tools、Delivery、Wake、Mobile、Models |
 
 ## 新增规则
 

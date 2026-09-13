@@ -198,7 +198,6 @@ API Key 是 write-only：读取状态只返回掩码和凭据状态，空值保�
 
 模型体验候选预览已退出独立 showcase；模型选择与认证改在正式 Settings 与生产 Chat composer 验收。对话壳层方向预览改走 `/?preview=chat-product`。
 
-05 修订版删除 composer 内部的第二个模型胶囊。唯一胶囊固定在输入框上方：桌面高 44px、宽 320～420px；展开前后宽度完全一致，只把高度增加到约 420px，稳定显示 5～6 个模型行。移动端宽度与输入框一致，展开高度不超过约 `62vh`。展开层的下沿和左右边界保持同一锚点，滚动只发生在模型列表，使用 sticky Provider 标题和 overscroll containment；点击模型或 effort 后更新胶囊但保持展开，点击外部或 Escape 才关闭，当前 Turn 语义不变。
 
 Provider/模型 Logo 候选使用 MIT 的 `@lobehub/icons`，已覆盖 Codex、DeepSeek、OpenAI、OpenCode、OpenRouter 等。生产构建应固定 npm 版本并本地打包，不依赖 CDN；无法识别的来源回退到稳定首字母标识。Memoh 仓库与其内置图标整体是 AGPL-3.0，本任务不复制其 SVG。
 

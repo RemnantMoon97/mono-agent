@@ -10,7 +10,6 @@
 
 - 负责范围：实现前置适配后，在不迁移正式Akashic状态的条件下验证LocalBackend、Python Host
   Bridge、容器Core、Supervisor、programmatic calling和宿主工具能力。
-- 当前阶段：隔离实验已完成；正式数据迁移、正式服务部署与手机/域名切换均未开始。
 - capability owner：Core拥有turn/plugin/MCP/Supervisor；Bridge拥有宿主Shell/File/Process；
   systemd拥有宿主服务与异常容器恢复。
 
@@ -36,13 +35,11 @@ hua-home隔离实验
 ```
 
 结论：**先在本机完成确定性开发和故障注入，再SSH到hua-home做最终环境证明。** hua-home实验不是
-正式迁移，不接入正式域名、手机、调度、主动任务或当前Workspace。
 
 ## 3. 受保护状态
 
 实验不得写入、复制、删除或启动：
 
-- `/home/huashen/.akashic/workspace` 的正式 sessions、memory、plugin-data、mobile identity与调度；
 - 正式 `~/.akashic/config.toml`、`auth.json`、GitHub App PEM和浏览器Default profile；
 - 当前运行的Akashic Supervisor、Gateway、端口、systemd unit和Cloudflare入口；
 - hua-home现有NAS、备份、Mihomo、Cloudflare、Docker stacks与防火墙规则；
@@ -199,7 +196,6 @@ profile、不复制cookie。服务器专用profile的首次网站登录仍是正
 仍需单独确认：
 
 - 迁移或停止正式Akashic Workspace；
-- 手机重新配对、正式域名/Cloudflare入口切换；
 - 人工登录服务器Chromium网站；
 - Git push、PR、GitHub review/comment等外部写入；
 - 删除旧工作站plugin-data；
@@ -226,7 +222,6 @@ profile、不复制cookie。服务器专用profile的首次网站登录仍是正
   common gitdir。
 - 机器可读证据清单：`/srv/data/experiments/akashic-container-8eb23df6/run-manifest.json`，sha256
   `7f567264e3520ffe48094f83ec4282b59c1b0706245699a2cbc160e3387cb27a`。
-- 正式Akashic Workspace、正式插件数据、手机身份、浏览器profile、域名和端口均未迁入候选。
 - 实验结束时Core容器为`exited(1)`、Compose restart count为0、readiness已清除；这是故障注入的
   预期终态，不是正式服务故障。
 
@@ -267,7 +262,6 @@ profile、不复制cookie。服务器专用profile的首次网站登录仍是正
 - 镜像仍使用`archlinux:latest`、`pacman -Syu`和范围型Python依赖；本次通过传输同一已测镜像消除
   两机差异，但尚未达到可重复重建的生产发布合同。
 - 本轮未完成canary插件安装、MCP managed-service失败回滚、真实Drift任务、subagent任务、SSH远端
-  target、OpenCLI浏览器边车、手机/域名、冷启动持久unit与正式数据迁移；不得据此宣称全部迁移完成。
 - 本轮没有把正式Workspace的前后目录摘要保存进run root。Compose mount证据证明Core没有bind正式
   Workspace，但不能仅靠当前现场证明Bridge历史上从未收到正式路径写请求；正式迁移Gate必须先补
   可复核的正式状态基线与迁移后对照。

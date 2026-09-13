@@ -115,7 +115,6 @@ PluginManager
 - 第一阶段是否保留现有 workspace `model-registry.sqlite3` 路径，还是迁到 plugin-data。本文选择保留现有权威路径，避免把数据迁移和代码插件化绑成一次变更；未来搬迁需要独立审批和恢复合同。
 - Provider 网络访问是否立即改走通用 Core Network Service。当前插件没有完整网络沙箱；本文不为模型单独发明网络权限系统。
 - `fast`、`vision` role 是否在后续产品设计中保留。第一阶段为行为等价继续保留，不借插件化删除角色。
-- 当前 `UI_SLOTS` 只实现 Mobile UI slot，不支持 2236 顶部导航或完整模型页面。Web 插件化是独立设计；不得让模型执行切片等待它，也不得把当前 Mobile slot 描述成已经具备该能力。
 
 ## 4. 最少概念
 
@@ -192,7 +191,6 @@ ModelExecution
 
 实现只补两个通用组合不变量，不增加模型原子：candidate 重建沿明确 `inject` 与冻结 topology 取得完整双向连通 component，避免只重建 provider 或 consumer 的半个注册表；Root 在全部插件 mount/readiness 完成、snapshot compile 前发送一次通用 `SNAPSHOT_SEALING` 串行事件，让 contribution owner 冻结私有 registry。`models` 使用该事件冻结 driver，不要求 `RuntimeSnapshotCompiler` 识别模型。`Context.get()` 仍是即时可选查询，不声明 activation 或热更新依赖；需要随 Service 安装、升级重建的插件必须显式 `inject`。
 
-每个无父 lease 的 HTTP、Mobile 和设置 request boundary 先通过现有 `RuntimeSnapshotStore.acquire()` 取得 current generic lease，绑定 owner task 后才从 exact Root 读取 Service。有父 lease 的 `CHAT_MODELS.execution()` 直接通过通用 `agent.plugins.snapshot.lease_current_runtime_snapshot()` fork 当前 exact lease；模型契约不重导出第二个 lease API。没有当前 task binding 时，调用者必须按该 operation 的错误语义 fail-loud，不能自行读取 current。普通插件自行创建的 timer/worker 若要调用其他插件 Service，只能用 Core 的 `ctx.runtime_scope()` 给一次短操作绑定该插件所在的 exact Root；不得让长期 task 持有 Root lease。事件转交给异步 worker 时，在同步 listener 内 fork source lease，并由 worker 在 `finally` 中释放。三条路径都复用同一 snapshot lease，不新增 model lease、model acquire helper 或 `lease.require()`。
 
 Core 不再为 plugin snapshot 与 model revision 增加共同 fence 或 ordered operation。删掉它成立的前提是更简单、也更严格的 driver 演进合同：
 
@@ -522,8 +520,6 @@ Onboarding 注入 `MODEL_CATALOG` 判断是否具备可用默认聊天模型和�
 | Akasha online/rebuild | `EMBEDDINGS` | 每个 embedding batch/完整 rebuild scope 开始时 |
 | Scheduler / Subagent / Wake | 继续只用 `SCOPED_TURNS` | 由 Turn runtime 间接解析 |
 | setup wizard / 无模型壳 | 通用 Plugin Installer；模型配置暂沿用现有 settings surface | 不创建临时 Core provider |
-| `bootstrap/app.py` Mobile binding | 不再接收 registry；Mobile handler 每请求从 exact UI/control Service view 读取 catalog | Mobile command admission |
-| `infra/mobile_realtime/channel.py` model catalog | exact request snapshot 的 `MODEL_CATALOG` | list/refresh command 开始时 |
 | `agent/config.py` | 静态 Config 不读取模型库、不派生 LLM runtime；只保留非模型启动配置 | Config load |
 | `main.py` / `bootstrap/app.py` model reload | `MODEL_SETTINGS` receipt；删除 `reload_model_config()` 直达 registry | 用户设置事务 |
 
@@ -633,7 +629,6 @@ Plugin snapshot 和 model revision 是两个正交变化轴，不强行合成一
 | Model | discovery 或用户确认后新增 | capability snapshot、显示信息；事务增加 revision | `enabled=false` 或 driver unavailable | 仅独立显式删除；存在 default/Session/index 引用时拒绝 | models plugin | backup、catalog digest、probe receipt |
 | workspace Binding | 首次设置 default chat/default embedding/role | 显式切换并增加 revision | 指向 disabled Model 时 unavailable，不自动改指 | 清除显式 binding 后回到已定义 fallback 规则 | models plugin | transaction receipt、旧 revision |
 | Session model selection | 用户首次固定 model/effort | Session/Turn admission owner 在 catalog 纯校验后切换 | 清除后跟随 workspace default | 只删除该 metadata key；不改变 Message | Session owner；models 仅校验 | sessions.db backup、message digest |
-| Credential payload | Connection 创建/登录成功 | 同 auth ID refresh/token rotate | Connection disabled | 只随独立 Connection 删除流程 | models plugin；driver 仅持有窄 handle | secret-mode backup、auth probe、无日志泄漏检查 |
 | Embedding space/index | 首次使用一个完整 identity | 同 space 只追加合法向量和索引状态 | default 改变后旧 space retired/read-only | 仅显式 reindex/删除操作；不得随 Provider 卸载自动删除 | consumer plugin，如 Akasha | space identity、source message digest、index audit |
 | Plugin artifact/cache | install candidate/stable publication | upgrade/revert | uninstall/retire generation | 正式 uninstall/cache GC 协议 | PluginManager | install receipt、snapshot identity、revert target |
 
@@ -734,7 +729,6 @@ Turn 内 embedding     EMBEDDINGS.bind() → embed(...)
 3. **公共合同与 state owner**：增加五个 ServiceKey/Protocol/DTO 和五个 facade；把 registry、selection、capability normalization、settings transaction 与 credential handle 移入普通 `models` artifact。
 4. **最小 schema**：保留现有模型库和 `model_connections.provider`，把它解释为 `driver_id`；增加 connection config、default embedding 与两张 model 表的 capability JSON envelope。不增加 driver/version/contract/digest 表或通用 Binding 表。
 5. **三个 Provider 同时迁移**：`openai-compatible`、Codex 和 OpenCode Go 分别成为外置 artifact；auth、refresh、transport、catalog 和 profile 全部随各自 driver 迁移。
-6. **全部消费者同时切换**：bootstrap 在 committed snapshot 内解析 Service；Akasha 改为 `EMBEDDINGS`；chat/settings/Mobile API、job、compaction、vision 和 memory consumer 按第 10.6 节迁移。
 7. **一次 legacy handoff**：Yoyo 把旧 `[llm]` 与 `[memory.embedding]` 的最终事实写入 models registry，并只把 Session 中同一维度的既有向量改为最终 space identity；消息正文和 Akasha sidecar 不变。Akasha 先明确降级，再由 `/akasha_reindex confirm` 沿 artifact-owned repair 重建派生文件，不重复请求已经完整的向量。
 8. **删除旧链**：证明零消费者后删除 `agent/provider.py` 的 Provider 分支、`ModelRegistry`/`ModelGeneration`/`RoleBoundProvider`、DB-to-Config 投影和 bootstrap builders；不保留旧 bootstrap → 新 Service adapter。
 9. **联合普通插件 Gate**：四个源码目录同时移出仓库，仅通过正式 artifact install，完成 chat + embedding + auth + control API + uninstall/reinstall 数据恢复。
@@ -757,7 +751,6 @@ Turn 内 embedding     EMBEDDINGS.bind() → embed(...)
 - Core 和 bootstrap 对 `openai`、`codex`、`opencode-go`、DeepSeek、DashScope 零名称分支。
 - bootstrap 在 PluginManager 之前不构造 ModelRegistry/LLMProvider。
 - 只有一个 committed plugin Root；不存在 models 预启动 Root 或 plugin ID bootstrap lookup。
-- Core 启动路径对 `ModelRegistryStore` 零读取；启用 Mobile 且没有安装 models 时仍能冷启动到 2236 管理壳。
 - 仓库内置普通插件不 import模型实现或兄弟插件源码。
 - `models`、三个 Provider 均通过第 14 节外置安装 Gate。
 - Service topology 能显示 provider plugin → `MODEL_DRIVERS`，consumer → 对应窄 Service。
@@ -818,6 +811,5 @@ Turn 内 embedding     EMBEDDINGS.bind() → embed(...)
 13. Session selection 是否仍由 Session owner 写入，模型插件只做纯校验。
 14. 当前全部直接模型消费者是否已有明确迁移落点。
 15. Provider 完整缺失是否能正常发布 unavailable，而同名 driver 的不兼容升级是否 fail-loud。
-16. Mobile、Config load 和 reload 路径是否已经停止在 bootstrap 捕获模型实现。
 
 任何一项为否，规格不得进入实现。

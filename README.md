@@ -10,7 +10,7 @@
 
 ```bash
 git clone <this-repo>
-cd akashic-agent
+cd mono-agent
 uv venv && uv pip install -r requirements.txt -e sdk/python
 ```
 
@@ -99,10 +99,9 @@ Linux 服务器上的 Core + Host Bridge 使用同一远端 commit 安装。未�
 `main` 的最新完整 SHA；需要复现或回滚测试时显式指定 40 位 SHA：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kachofugetsu09/akashic-agent/main/scripts/install-akashic.sh | sh
+./scripts/install-akashic.sh
 
-curl -fsSL https://raw.githubusercontent.com/kachofugetsu09/akashic-agent/main/scripts/install-akashic.sh \
-  | sh -s -- --commit <full-40-character-sha>
+./scripts/install-akashic.sh --commit <full-40-character-sha>
 ```
 
 安装器会显示 current/target identity 并等待确认；无人值守时加 `--yes`。只准备镜像、Bridge venv、
@@ -137,76 +136,6 @@ supervisor；需要直接调试 child 时把程序参数设为 `gateway`。也�
 
 ---
 
-## 用 Android 手机接入
-
-Akashic Mobile 是一个通过独立实时网关连接 mono-agent 的 Android 客户端。远程接入推荐使用 Cloudflare Tunnel：Web Chat 和模型设置继续留在本机 `127.0.0.1:2236`，Tunnel 只转发由 Akashic 设备认证保护的 `6323` 端口。
-
-```text
-1. 在 config.toml 启用 [mobile_realtime]
-2. 用 Cloudflare Tunnel 把一个公共域名转到 https://127.0.0.1:6323
-3. 在本机 Web Chat 点击“连接手机”，用 Akashic Mobile 扫描二维码
-4. 两端核对六位确认码，在电脑上批准设备
-```
-
-- Android 安装包：<https://github.com/kachofugetsu09/akashic-mobile/releases/latest>
-- 配置、Cloudflare、验证与排障：[移动端接入手册](./_handbook/mobile-access.md)
-
-首次配对成功后，手机会保存设备密钥，正常升级应用或重连无需再次扫码。
-
-### 把前端改动更新到移动端
-
-Android 的对话界面与 Web Chat 共用 `frontend/chat/src`。只修改 React、CSS 或插件插槽时，
-不需要重新打包 APK；服务端把构建结果发布成不可变 WebUI generation，支持 OTA 的客户端会
-下载、校验并切换到所选频道。只有原生壳、Native Bridge 协议或最低原生 build 发生变化时
-才需要发布新的 APK。
-
-先从发布仓读取当前服务身份，并为指针和可达资源创建恢复点：
-
-```bash
-AKASHIC_WEBUI_SERVER_ID="$(sqlite3 -readonly \
-  ~/.akashic/workspace/mobile-webui/publication.sqlite3 \
-  "SELECT value FROM webui_meta WHERE key = 'server_id'")"
-
-.venv/bin/python scripts/publish-mobile-webui.py backup \
-  --workspace ~/.akashic/workspace \
-  --server-id "$AKASHIC_WEBUI_SERVER_ID" \
-  --destination ~/.akashic/backups/mobile-webui-"$(date +%Y%m%d-%H%M%S)"
-```
-
-开发中的 dirty 前端只能发布到 Preview，适合在配置为 Preview 频道的真机上验收：
-
-```bash
-.venv/bin/python scripts/publish-mobile-webui.py publish \
-  --source-repository "$PWD" \
-  --workspace ~/.akashic/workspace \
-  --server-id "$AKASHIC_WEBUI_SERVER_ID" \
-  --allow-dirty \
-  --actor local-preview
-```
-
-合并后切到最新且干净的 `main`，再从确定的 commit 发布 Stable；普通设备随后会通过 OTA
-取得该 generation：
-
-```bash
-git checkout main
-git pull --ff-only origin main
-test -z "$(git status --porcelain)"
-
-AKASHIC_WEBUI_SOURCE_COMMIT="$(git rev-parse HEAD)"
-.venv/bin/python scripts/publish-mobile-webui.py publish \
-  --source-repository "$PWD" \
-  --workspace ~/.akashic/workspace \
-  --server-id "$AKASHIC_WEBUI_SERVER_ID" \
-  --source-commit "$AKASHIC_WEBUI_SOURCE_COMMIT" \
-  --stable \
-  --actor local-stable
-```
-
-用 `publish-mobile-webui.py inspect` 核对 Stable/Preview 的 generation、协议窗口和
-`minimum_native_build`。发布只更新 WebUI 发布仓，不会改写会话、记忆或插件数据。
-
----
-
 ## 系统全景
 
 ```
@@ -225,7 +154,6 @@ AKASHIC_WEBUI_SOURCE_COMMIT="$(git rev-parse HEAD)"
 |---------|------|
 | 怎么首次配置或切换 Provider | 启动后访问 `http://127.0.0.1:2236/#models`，支持 API Key、OpenCode Go 和 Codex Auth |
 | 怎么打开本机 Web Chat | 启动后访问 `http://127.0.0.1:2236`；没有模型时页面会直接引导配置 |
-| 怎么用 Android 手机远程连接 | [移动端接入手册](./_handbook/mobile-access.md) |
 | 怎么让 agent 主动推送消息、怎么配数据源 | [_handbook/proactive-guide.md](./_handbook/proactive-guide.md) |
 | 怎么写后台任务让 agent 空闲时自动干活 | [_handbook/drift-guide.md](./_handbook/drift-guide.md) |
 | MEMORY.md / SELF.md / consolidation / 记忆怎么流转 | [_handbook/memory-markdown.md](./_handbook/memory-markdown.md) |

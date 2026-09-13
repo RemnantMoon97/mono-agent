@@ -111,7 +111,6 @@ Runtime Service 通过 `inject` 和 `ctx.require(KEY)` 连接；插件能力由�
 |---|---|---|
 | `COMMANDS` | `register(ctx, CommandDefinition(...))` | 人类命令、alias 和 handler |
 | `TOOLS` | `register(...)`、`bind(...)`、`open(...)` | `plugins.tools` 的工具描述、参数准备、exact binding 与执行入口 |
-| `UI_SLOTS` | `register_mobile(ctx, definition, query=...)` | Mobile 页面、查询和导航 |
 | `CHANNELS` / `CHANNEL_INPUT` | 注册 blueprint，按绑定调用入站入口 | inbound/outbound Channel 适配 |
 | `DELIVERY` / `DELIVERY_READ` | 打开发送 admission 或只读历史 | Delivery 发送、恢复和查询 |
 

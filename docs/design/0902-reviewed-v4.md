@@ -39,7 +39,6 @@
 本小节保留 2026-09-05 设计调查时的旧执行图，供迁移和恢复对照；它不是 2026-09-07 当前源码入口。旧图的清理事实和当前 Message/插件路由见第 10.G 节，不能从下列旧类名推导现行 API。
 
 ```text
-┌ Channel / Mobile / Web ingress ┐
 └──────────────┬─────────────────┘
                ▼
       PassiveMessageWorker
@@ -186,7 +185,6 @@ writer 已绑定 Session、source、author 及允许的消息类型，调用时�
 
 `MessageWriter.append(..., metadata={...})` 将正文和 metadata 一次提交；不传时为空对象。生产者通过现有 MessageWriters 取得自己的命名空间，组合者只取得 Content view 的窄检查器，新消息只接受本次解码实际产生的完整 metadata，不取得生产者 Context 或按任意插件 ID 签发权限。Content decoder 只返回自己的 JSON，不填写命名空间；`view.decode()` 返回 `(parts, metadata)`，reply 直接转交给 writer。一个请求内同一插件重复产生附加信息时明确失败，不静默覆盖。所有内容 producer 仍共用本请求的 generation lease。
 
-当前单条 metadata 上限为 64 KiB UTF-8 JSON。JSON 深冻结后保存到 `messages.metadata`，读取不加载插件或解释扩展版本。Session 的可变 metadata 与此字段独立，既有模型选择投影不变。Web/Mobile/SDK 共用的消息页与 follow 数据携带完整 metadata；它是已授权会话读者可见的信息，不得写入凭据或 provider 私有 replay 数据。
 
 Yoyo `20260907_03_message_metadata` 仅在已知 Message schema 上增加 `TEXT NOT NULL DEFAULT '{}'` 列。旧 body 字节、rowid、ID、seq、附件和 binding 引用保持不变，不搬迁历史 ContentPart。既有 yoyo 中间步骤仍可经同一 MessageLog 读写无扩展消息；旧 schema 在该迁移前拒绝非空 metadata，不隐式加列。未知 schema、损坏 JSON、越权写入或同 ID 不同 metadata 均失败。
 
@@ -306,7 +304,6 @@ conversation 订阅输入和控制事实，决定何时启用默认程序、哪�
 
 命令结果也有稳定提交身份，绑定原输入与 handler；无可见回复则追加 quiet。effect 已成功而回复未提交时，从领域 receipt 恢复同一结果，再按同一 message_id 提交，不能重跑副作用或追加第二份答复。
 
-入站直接调用普通来源能力，不再经过内存 inbound queue 或 `PassiveMessageWorker`。ChannelHost 从已取得的 exact snapshot 调用 `CHANNEL_INPUT`，来源插件提交 Input 后，传输 owner 完成 custody 与 ACK。Mobile 在提交前已有的耐久 handoff 继续保留：崩溃恢复使用相同身份重新接纳，Input 已存在时直接结算，不能重启模型。普通输入不再占用“直到最终回复才释放”的 passive lane 计数。
 
 来源接纳与自动回复分开安装：`conversation` 提供输入、控制和同来源 Task 准入；`reply` 追赶日志并选择默认程序。`Conversation.start(program)` 不把程序绑定在接纳对象上，关闭自动回复仍可保存输入和历史同步。这里修正原验收中“关掉 conversation”的包名说法，保留关闭自动回复而不丢输入的行为。启动的程序接收 `(task, reader, source)`；它取得 Content 与 Model 资源后自行签发 Output writer，紧接着同步登记 Task 撤权。Source 无需在同步准入中打开异步 Content 资源。
 
@@ -551,7 +548,6 @@ UI 的 scope handle 和来源 head 前置条件在控制提交时一起核对；
 | Akasha vectors/学习/反馈 | 已批准学习与反馈产生 | 沿既有学习 owner 的更新与来源失效协议 | 不把学习状态统称缓存；删除/重建先核对固定输入与保留义务 |
 | compaction/Markdown receipts | 新摘要、before-image、applied receipt | 摘要按来源失效，Markdown 沿现有 receipt 更新 | 无新自动减少授权；从已提交摘要、before-image 和备份恢复 |
 | consumer cursor | 消费器首次订阅 | 只在成功应用后推进；有副作用时与 receipt 协调 | 卸载不能顺带删除业务事实；重扫必须幂等 |
-| 来源 schedule/cursor/ACK/quota/journal | 各业务动作 | 各 owner 的既有状态机 | preserve/replace/retire 逐项批准，不能因 Core 删除 proactive 分支清库 |
 | 发布/重启 journal | 明确的外部管理操作 | 按实际验证、进程/服务切换推进 | 保留现有恢复证据；迁移不自动减少 |
 | scope、token 预览、内存队列 | 活动进程创建 | 活动期更新，结束后清理 | 可丢；任何已接纳输入或未解决 effect 都有其他 durable owner |
 | 旧 turns/attempt 表 | 切换后停止新写 | 迁移前只读保留，未落 messages 的已接纳输入需要显式转换 | 验收和用户数据管理授权前不得 DROP/DELETE；代码删除不是删除历史授权 |
@@ -619,11 +615,9 @@ Turn projection / Akasha 只读消费 MessageLog
 - `RUNTIME_STARTING`、`RUNTIME_STARTED`、`RUNTIME_STOPPING` 和 `SNAPSHOT_SEALING` 仍是当前生命周期信号；旧 `AFTER_TURN_COMMITTED`、旧 retrieval/observe 名称和测试残留不证明新 Core 会发布这些事实。新来源变化使用来源插件自己的 typed signal。
 - `agent/control/frame_book.py` 是 control frame 的唯一 owner：它按 `(session_id, input_id)` 定位唯一短命 route，并保存 `connection_id` 作为 owner；依据已提交 Message 页识别 complete Output，并等待该 Output 的实际 writer drain。`FrameClaim` 只为一个精确 `CallRef` 延长这段 drain；连接失败时 active route 被移除，原始异常保留在 claim 直到 watcher `consume` 或 `abort`，它不是新的 Turn、Delivery 或 supervisor 状态。
 - programmatic 来源的 ACK 只表示 Input/Control 已由 Message writer 提交；`programmatic/message/result` 从同一日志快照读取 `complete`、`pause`、`failure` 或 `open`。回复完成、渠道送达、完整 frame drain 和 restart claim 是四个独立事实。
-- Mobile 已移除旧的 stop/interrupt 注入和 `_Bus` 生产假设；生产 `MobileRealtimeChannel` 通过真实 MessageCatalog、MessageBus recoverer 与 `ChannelRuntimePorts` 接线。旧测试辅助对象不构成新的运行时 API。
 - Web 新实时链路只由 Message log 的 `session.follow`、`messages.appended` 和 `reply.status` 提供。`messages.appended` 是可按 seq 重读的持久事实，`reply.status` 是当前 generation 的短命只读活动；旧 `message.final` 不属于当前 Web API 合同。
 - 旧 Memory2/Memory plugin 组合入口和已删除的 runtime helper 不再进入当前插件路由；`plugins/compaction`、`plugins/markdown_memory` 和 `plugins/akasha` 的 owner 与持久化合同继续保留。
 
-这次清理不宣称正式 workspace、Android 原生配套、外部插件源码迁移、旧 workspace 转换、历史摘要账转换、旧未确认外部效果恢复或完整 MessageLog 正式切换已经完成。当前候选已进入完整启动验收，最终 Gate 和正式切换仍由 `NOW.md` 接手；receipt API 只能按当前真实实现记录。清理前恢复点见 [测试与 Gate 清理账本](../refactor/test-gate-cleanup-ledger.md) 的 2026-09-07 条目。
 
 ## 11. 验收：证明变化互不牵连
 
@@ -681,7 +675,6 @@ Turn projection / Akasha 只读消费 MessageLog
 | decision 0026 发布由父 Turn terminal 触发 | 发布 operation 等待真实资源排空与验证事实 |
 | decision 0050 模型绑定时机 | 复用模型插件 owner，将绑定生命周期与学习 Turn 脱钩 |
 | decision 0052 compaction / Markdown 插件 | 保留两者独立性及持久化保护，仅替换来源与读取接口 |
-| 既有 Mobile/control identity 与 replay | 使用 Message 同步和活动 scope handle，旧协议切换需单独版本与客户端验收 |
 
 用户已批准本设计方向、剩余重构和有记录的冗余功能删除，不再重复请求架构批准。实现前把对应长期条款与 decisions 同步为一致合同；尚未定义的 Message 删除、迁移和恢复协议须补成可审阅的具体方案。代码/功能删除许可不等于自动减少正式会话、学习状态、附件或旧插件数据。
 
@@ -733,7 +726,6 @@ Turn projection / Akasha 只读消费 MessageLog
 | 真实消费者与源码版本 | 17 个内置及受影响外部插件的 source→artifact→generation→合同清单；未归位动态入口不得删除 |
 | 受限事务与插件替换 | Message+owner state+binding reference 的原子提交、授权及 crash 合同；证明外部实现无私有权限也能接管 |
 | Message 与旧数据迁移 | 旧输入/工具轨迹去重映射、Akasha/compaction来源、撤销协议；原生一致备份、完整性核对与隔离恢复演练 |
-| 客户端与一次性切换 | Web/Mobile/SDK 的 message_id/seq/活动 handle 合同；新链路单独验收，正式切换与成套恢复步骤明确 |
 
 ### 14.4 删除规则与账本
 
@@ -1094,7 +1086,6 @@ conversation 的 `/stop` 在同一 Task 准入回调中选择当前 handle、提
 Input 映射、必要的新 Input、归档、pause 与 manifest 在单个 SQLite 事务内提交。既有已映射 Message 保持原 legacy source；只有迁移 writer 可以把 conversation pause 截止固定在对应的旧全局 seq，普通 Conversation.control 仍要求同来源。迁移前创建并校验 SQLite 原生备份，提交前核对旧正文、身份、原始 JSON、向量、附件和外键；提交成功而 yoyo 尚未落账时，按 manifest 核对同一批 Message，不能重复分配 seq。本轮已验证事务提交前故障全回滚、提交后中断幂等恢复、未知 schema 和原记录损坏拒绝；这仍是仓库内候选证据，正式 workspace 未运行迁移。
 
 
-Channel 接纳以 Input 原子提交为边界，Core 启动在全部渠道完成 start 后重放 durable handoff，不依赖旧回复 worker。恢复按 `(created_at, handoff_id)` 扫描有限页，跳过仍在处理的 exact owner；单行失败释放本页尚未执行的恢复 claim，保留原始交接记录。已提交 Input 重放复用原身份与 seq，只完成传输清理，不重跑回复。提交前取消保留原始附件引用，提交后取消等待删除交接记录与 lease 释放；清理暂时失败后关闭进程仍保留 durable row。旧 BUS/LANE/LOOP 测试替换关系见测试与 Gate 清理账本，公开 Mobile receipt 场景同时覆盖新 Channel 输入与独立回复消费者。正式 Core 的唯一 MessageLog 生命周期和全部客户端读取切换仍属第 10 层，当前 fixture 证据不冒充正式启动验收。
 
 第 08 层交付前核对远端 main `31136520`：摘要请求同步 `e17cb95f` 的 provider 默认输出长度合同，不再添加旧 8192/model-cap 输出上限。当前批准的单个 Summary 与近期窗口模型不恢复旧引擎的 persistent/temporary 双摘要。其余 Host Bridge、Computer 与界面更新在最终栈顶整合并重新验收，已发布分支不重写历史。
 
@@ -1107,13 +1098,11 @@ Channel 接纳以 Input 原子提交为边界，Core 启动在全部渠道完成
 
 默认策略仅发送所选来源的完整可见 Output，当前默认是 conversation；Input、continue、ToolResult、quiet 与 Control 不发送。目的地来自该 Output 前缀内最后一个同源 Input 的 channel.origin，后来输入不能改写旧选路。显式通知沿来源已固定的集合处理。每个 Session 按 seq 追赶，各目的地独立结算，一个 ACK 丢失不能取消其他已开始的发送。
 
-已验证真实普通插件删除当前源码、数据库重启后仍打开原 sender，且不再次启动 receiver；也验证实际 Channel Input → ReAct → complete Output → 独立发送链。此子范围的独立 Terra/xhigh 概念 Gate 通过，发送重试竞态已修复。正式 Web/Mobile 的资源迁移、旧 delivery ledger、Scheduler/Subagent/Wake 和发布操作仍待本层后续及第 10 层累计验收。
 
 故障验收还覆盖实际 sender 已完成外部写入、随后本地 delivered 事务失败：原记录保留 started，数据库重开和当前源码移除后按原 binding 查询，外部效果仍只有一次。该场景与从 prepared 恢复共用真实插件归档链，不能由手工预置 started 状态替代。
 
 Scheduler 的内部持久化已由维护者批准，见 [0058](../decisions/0058-scheduler-keeps-internal-messages.md) 与 SCH-003：每次 fire 使用独立内部 Session，只向目标聊天追加最终通知，不读取同 job 的旧 fire，也不把内部消息纳入记忆学习。来源继续使用既有 job identity，不新增 Core Run 或来源特判。调度文件升级归属本层 yoyo，JobStore 和 Inspection 的读取不得隐式覆盖 schedules.json。
 
-当前 Web/Mobile 的 Core native 定义只有固定 `core-native-v3` 标记和进程内 token，不能冒充可恢复 Binding。现行 Web 无远端幂等或 query；Mobile 每次 publish_event 新建 inbox event，没有按原发送 key 查询的公开合同。新链路不得包装 live Core 指针或回退当前渠道。旧 ledger 中的 body、provider receipt、投影引用和来源 ACK 保留；缺少可靠旧 adapter 恢复协议的转换继续列 TODO，不凭 Session 消息存在伪造已送达。
 
 
 **第 09 层当前候选的发送与启动协调：** Selection 固定 `recovery_owner` 和 `passive`，消费 cursor 按实际消费者分开。默认策略不能恢复 Scheduler 等其他 owner 的发送，也不能加入其正在运行的 Task 绕过权限。Scheduler 的最终通知与首次 Selection/prepared 通过现有 owner 事务和获授权 Message writer 原子追加，避免通知已入库而默认策略抢先固定空集合的崩溃窗口。
@@ -1258,7 +1247,6 @@ Shell 默认归属固定的 `(session_id, source)`，显式配置的作业 key �
 
 原去重身份、分页顺序、失败重试和提交后清理边界不变；pending payload 不原位更新。打开 owner 不清理租约，只有持有 workspace 独占权的启动路径调用 `clear_stale`。现阶段 SessionManager 仅为尚存旧 runtime 组合并关闭这些真实资源；新库和迁移库的恢复测试直接重开 MessageLog 与两个 owner，不构造旧 SessionManager。
 
-六组针对性回归 147 项通过，包含同库迁移前已落盘的交接、正文提交前/后重开、删除与接纳竞态、取消、清理重试及旧渠道行为。新增 owner 与相关测试类型检查无错误、无警告；独立 Terra/xhigh 概念 Gate PASS，审查者独立运行四组 103 项回归通过。这一子范围不等于 Core 完整启动或 Web/Mobile readers 已迁移。
 
 
 #### 渠道身份路由独立重开（第 10 层前置部分）
@@ -1277,7 +1265,6 @@ Shell 默认归属固定的 `(session_id, source)`，显式配置的作业 key �
 
 一次性 yoyo 保存已知旧 Feishu/QQ/Telegram（含配置名）的别名与稳定冲突裁决顺序；源码中的来源名称只存在历史迁移和 adapter，Core runtime 不再选择 metadata 字段或 normalizer。未知来源不被迁移写入空 marker，已有 marker 即使路由为空也不重读 metadata。外部 Feishu 的普通 resolve 接口保持原样，不新增永久迁移 port。
 
-本子范围验证真实 MessageLog 入站失败、再次接纳、数据库重开、路由解析与原 Input 复用，并覆盖新/旧库的实际 yoyo、历史别名、配置名、碰撞顺序、备份完整性、迁移中断重试和原 Session 删除审计。正式 Core 生命周期、Web/Mobile 读取与旧入站测试迁移仍须第 10 层继续完成；此处不把局部 fixture 当作完整启动验收。
 
 身份与输入、旧 Session 删除、接纳、迁移 runner 和 append-only 的联合验证有 170 项通过；原生启动接线 fixture 补齐窄 identity 依赖后，另 1 项单独通过。独立 Terra/xhigh 对身份、实际 yoyo 和迁移 runner 的 38 项复验通过，概念 Gate PASS；身份/迁移目标类型检查 0 errors，3 项既有边界 warnings。Web 四项旧 `bind_inbound_publisher` 场景仍待按新 Input 链改写，不能计为通过。
 
@@ -1298,16 +1285,13 @@ metadata 键在现有 MessageWriters 中按实际 Context 登记唯一 owner；�
 
 旧 schema1 和字符串 override 原样可读；下一次显式选择移除旧字符串，选择“跟随默认”时只移除两个选择键。无变化的 clear 保留原 SQL NULL，其他 metadata 保留。模型执行只从当前 open Turn 读取显式选择，再读 Session 保存值；不倒扫已结束历史，因此清除不会被旧输入复活。已保存模型失效时明确失败。
 
-Web/Mobile 的模型查询使用显式绑定的只读 MessageCatalog，未知 Session 不创建行，损坏 metadata 不降级为空选择。两端查询协议的直接验收已通过；完整 Channel 启动、会话列表、历史同步及正式 bootstrap 仍属于第 10 层的未完成接线，不能据此宣称完整 Gateway 已切换。
 
-本子范围联合回归 90 项通过，目标类型检查 0 errors / 0 warnings。独立 Terra/xhigh 复验核心 29 项及 Web/Mobile 查询 4 项通过，概念 Gate PASS。扩大 Web/Mobile 旧测试时仍有 8 项缺少旧 `bind_inbound_publisher` 的失败，归入前述第 10 层接线；旧 UI 接线文件的类型检查另有 23 项 warnings，不计为清零。
 
 
 ### 只读会话目录与消息分页
 
 MessageCatalog 按最近活跃时间和 Session ID 读取 live 目录，显式前缀精确匹配，visibility 来自既有 Session attributes。当前页查询只按所选 Session 的索引取得真实消息数量、高水位和首条 Message；不从 seq 推算数量，不加载全部正文或在分页后过滤空文字。续页期间活跃会话可以移动到 cursor 之前，刷新首页取得新顺序。
 
-MessageReader 的前向页和倒向页在同一 SQLite 读事务固定 through_seq、正文、按序附件与绑定描述。倒向页仍按 seq 正序返回；多取一条判断 has_more，历史 seq 空洞不会产生虚假的下一页。另一个连接追加消息不改变已固定的历史前缀；未知 Session 与空 Session 明确区分，查询不会创建会话。页面只有事实值，没有 SQL、写入、资源打开或发送能力。完整 binding descriptor 是后端数据，Web/Mobile 展示须由 owner 缩减字段，不直接公开恢复配置。
 
 本子范围联合回归 53 项通过，目标类型检查 0 errors / 0 warnings；独立 Terra/xhigh 复验 32 项通过，概念 Gate PASS。评审发现的消息全表扫描已通过 CROSS JOIN 固定当前 Session 页为外层修复，并以实际查询的 EXPLAIN 回归证明。目录和历史读取前后数据库逐项不变；新 API 不增加、更新、失效或减少任何持久记录。两端页面转换、实时同步和正式启动接线继续属于第 10 层后续验收。
 
@@ -1318,7 +1302,6 @@ MessageReader 的前向页和倒向页在同一 SQLite 读事务固定 through_s
 
 Web 历史接口显式返回 version 2、through_seq、before_seq 与 has_more；目录使用时间和 Session ID cursor，保留空文字会话。请求范围错误返回 422，未知 Session 返回 404，损坏持久记录保持服务端失败。两处接口不再使用 SessionManager，也不从旧 Turn 或 tool_chain 重造执行事实。
 
-真实迁移、字段隔离、分页、附件 import/引用/HTTP 读取与相邻存储的联合验证 58 项通过；新后端模块类型检查 0 errors / 0 warnings。Web 接线文件另有 7 项既有 warnings。独立 Terra/xhigh 的后端概念 Gate PASS，复验 58 项通过并明确排除 4 项尚未接管的旧 inbound API 测试。前端仍须适配 v2；Mobile 与正式 bootstrap 尚未完成，本段不代表页面或完整运行链已切换。
 
 
 ### Web 历史时间线（第 10 层部分接线）
@@ -1334,17 +1317,12 @@ Web 历史接口显式返回 version 2、through_seq、before_seq 与 has_more�
 
 会话目录续读 next_cursor；历史向前翻页固定首次 through_seq。请求取消、会话切换和正文或身份冲突不会被空结果掩盖，错误在页面显示。本段只增加临时 UI 状态，不增加、更新、失效或减少权威持久记录。
 
-三个 Message v2 插件槽只从已提交 Timeline Message 调用：before_reasoning 使用真实 messageId，before_tool 的 block 是原 ToolCall 展示数据加 message_id/part_index，after_answer 只对应 complete 输出。后续实时接线已将正式消息统一到同一 Timeline；旧 ChatMessage 只暂时承载本地待发 Input，不 mount 插件槽，也不接收旧 Turn 流。Mobile 桥接与正式 bootstrap 尚未接完，不能把本段称为完整客户端切换。
 
-本段 Web 回归 60 项通过，TypeScript 检查通过，目标 ESLint 0 errors、1 项既有 ComposerAttachments effect warning，生产构建通过。真实 Chromium 夹具验证六条混合记录、固定页上界、含空会话的目录续页、归档键盘展开和原值、工具引用定位、回复作者、390px 无横向溢出；新增时间线区域 axe 为零问题。真实加载测试插件验证三个槽的持久身份，并验证旧瞬时 thinking/tool.started 不进入 Message v2 插件槽。屏幕阅读器与原生 Android 互操作未验证。
 
 独立 Terra/xhigh 复验边界与 Akasha UI 10 项通过，概念 Gate 的槽结构冲突已通过上述隔离清零。恢复点为 `/tmp/message-timeline-backup-20260906`：原前端 src 完整压缩包、本节之前的设计文档与新增文件清单。构建与浏览器证据均在 `/tmp/message-timeline-*`，未改生成 bundle、正式 workspace 或外部源码。
 
-### Mobile 完整 Message 同步（第 10 层部分接线）
 
-`session.list`、`history.get` 和 `message.content.prepare` 要求显式 `message_log_version=2`。目录使用最近更新时间与 Session ID cursor，包含空会话和首条无文字的会话；标题为 Mobile 自己的短预览。历史按 `after_seq/through_seq` 读取共享 MessagePage，保留四种 body、真实作者/来源、原序号、附件、工具参数和归档。旧分页版本明确返回升级错误。
 
-单条展示 JSON 超过 64 KiB 时，事件只携带 `id/session_id/seq` 与整条 `message_ref`，引用给出 version 2、UTF-8、application/json、原始 byte_length 和 SHA-256。页面超过 240 KiB 时只减少整条消息数量，续页仍从最后一条的原 seq 开始，不截断正文、工具参数或归档。`/mobile/message-content/v2` 在设备、连接 epoch、ticket 和 Range 校验后，重新读取同一展示 JSON 并核对摘要；它不会把私有 binding 或模型续传内容当作下载正文。
 
 ```text
 ┌─────────────────┐     ┌─────────────────────────┐
@@ -1356,9 +1334,7 @@ Web 历史接口显式返回 version 2、through_seq、before_seq 与 has_more�
                          └─────────────────────────┘
 ```
 
-本分项只读取 sessions.db，不增加、原位更新、逻辑失效或物理减少其中记录。事件和命令收据继续由既有 Mobile inbox owner 保存，下载 ticket 沿用短期签名授权。恢复点为 `/tmp/mobile-message-log-backup-20260906/`，正式 workspace 未改动。
 
-独立 Terra/xhigh 概念 Gate PASS，复验 Mobile/共享展示/目录 23 项通过；HTTP 分块重组、同库重开、错误摘要、跨 Session、旧连接 epoch、超大工具/Control/归档和数据库不变均有真实边界证据。正式 bootstrap 尚未注入 MessageCatalog，原生 v8 桥接也尚未迁移，因此本段不代表完整 Mobile 切换可部署；旧历史 helper 与旧测试在功能接管后按清理阶段处理。
 
 ### 短命回复预览（第 10 层前置部分）
 
@@ -1379,7 +1355,6 @@ ReAct 可选接收预览上下文工厂。每次实际 provider 调用前预分�
 
 新输入或取消同步撤掉预览并使 writer 失效。不合作的 provider 在排空期间仍保留 inactive 活动；其晚到结果会被 writer 拒绝，不能复活旧草稿。正式 Message 落库与资源全部释放是两件事，活动只在后者发生后移除。
 
-本分项不增加、更新、失效或减少持久事实。恢复点为 `/tmp/reply-preview-backup-20260906/`；预览只存在内存，服务重启直接从正式消息和新活动恢复。相关 35 项回归通过，四个生产文件类型检查为零错误/警告。独立 Terra/xhigh 概念 Gate PASS，含最终卸载复验 45 项通过。Web/Mobile 的预览传输与页面接线尚未完成，不能据此宣称客户端实时链路已完成。
 
 ### Web 消息与回复状态订阅（第 10 层部分接线）
 
@@ -1399,7 +1374,6 @@ ReAct 可选接收预览上下文工厂。每次实际 provider 调用前预分�
 
 Channel stop 先关闭新绑定，再等待两个订阅及其 finalizer 完成，最后关闭 socket；关闭请求本身不作为资源已释放的证据。此分项不写、更新或减少运行数据，恢复点为 `/tmp/message-follow-backup-20260906/`。真实 TestClient 验证同 ID 的草稿与提交、断线、切会话和服务器停止；确定性 finalizer 阻塞证明 stop 不会提前返回。相关 29 项回归及独立 Terra/xhigh Gate 通过，新增读取代码类型检查零错误/警告。
 
-正式 AppRuntime 的日志/状态绑定和 Mobile 订阅仍待后续整合。整文件 Web 回归中四个测试仍调用已删除的 `bind_inbound_publisher`，须随入站接线迁移，不据此声明全套回归或部署完成。
 
 ### 桌面实时 Message 时间线（第 10 层部分接线）
 
@@ -1409,11 +1383,8 @@ Channel stop 先关闭新绑定，再等待两个订阅及其 finalizer 完成�
 
 共享 v2 边界覆盖分页 cursor、消息序号、跨会话、活动身份和不可用状态。62 项 Web 回归、TypeScript 和生产构建通过；独立 Terra/xhigh 概念 Gate PASS。浏览器使用生产 bundle 与受控 HTTP/WebSocket，验证旧页与新追加交错、同 ID 替换、停止、断线续读、切会话和加载中发送；axe 检查无违规，390px 下无横向溢出、无 page error。恢复点仍为 `/tmp/message-follow-backup-20260906/`，浏览器与构建证据为 `/tmp/message-follow-*`。
 
-输入框统计由下文“模型调用统计”接入 v2 调用账；旧 Turn 事件不再驱动统计。正式 AppRuntime、Web 引用输入和 Mobile 接线仍未完成；此分项不代表端到端发布。
 
-### Mobile Message 视图与原生 v9 桥接（第 10 层部分接线）
 
-候选 Mobile WebUI 直接使用共享 `TimelineMessage`，保留 Input、Output、ToolResult、Control、原作者、来源、seq、按序 parts 与附件。引用回到原 Message，工具结果可定位原调用的 part_index；只有 Input/Output 可作为回复目标。复制保留真实作者，搜索包含思考、工具参数和归档；未读只计算新追加的 seq，加载更早历史不会增加未读。消息选择手势让原生 summary 正常展开详情。
 
 原生桥接采用独立 v9 快照，旧 v8 明确报错。原有连接、目录、输入区、模型与检查状态继续存在，消息面改为 `messages: TimelineMessage[]`、`throughSeq`、`replyStatus` 和 `downloads`。原生须先完成整条 `message_ref` 下载、摘要校验及 JSON 解码，再发布真实 Message；不能发送空正文占位。`downloads` 每项只有 `artifactId/state/transferredBytes/contentUrl?`，状态为 remote、pending、downloading、cached、failed 或 evicted；文件名、类型和大小仍来自 Message。待发送队列单独保存 `messageId/preview/createdAt/deliveryLabel/deliveryAction?`，retry/verify 由队列发起，不伪造可选中的持久消息。
 
@@ -1424,25 +1395,18 @@ Channel stop 先关闭新绑定，再等待两个订阅及其 finalizer 完成�
                ▼
         Message 共享视图 + 独立活动虚拟行
                ▲
-┌ mobile.message-event v1 ──────────────────────┐
 │ projectionGeneration + event: MessageLogFrame v2 │
 │ messages.appended → 追加 │ reply.status → 替换活动 │
 └──────────────────────────────────────────────┘
 ```
 
-`projectionGeneration` 是本次 WebView 的原生同步代际，切换会话或重建时必须递增；它不是 Core 插件 snapshot_id。完整快照低于当前代际时忽略，同代际要求同会话、游标不回退且已有正文一致；新代际可以建立新基线。同代际快照只补消息、下载和控制状态，不能复活旧活动；活动后续只由 `mobile.message-event` 更新。其 envelope 为 `{protocolVersion:1, projectionGeneration, event}`，event 复用 Web v2 的 `session.following/messages.appended/reply.status`。旧代际或其他会话事件无权更改当前页面，游标断裂显式报错并请求快照。断线清除活动，完整 Message 仍可阅读。
 
-`mobile.state-patch` 升为 v2，只接受连接、会话目录、选择、阅读/导航位置、同步代际、downloads、composer、modelCatalog、runtimeInspection；夹带 messages、throughSeq、replyStatus 或旧 stream 字段明确失败。外层 Native Bridge envelope 与方法参数数量保持不变，但 v9 的 `markSessionReadThrough(sessionId, throughSeq)` 第二参改为 seq；阅读锚点仍是 message_id 与像素偏移。停止动作只向原生请求停止，不能自行把草稿当成已结束；活动排空由真实状态报告。
 
-本分项只修改仓库源码、夹具和协议说明，不写正式 sessions.db、Android Room、附件或 plugin-data。恢复点为 `/tmp/mobile-timeline-backup-20260906/`。原生 Android 源码、服务端 Mobile 活动订阅和完整 AppRuntime 仍待配套；本层桥接夹具不是原生互操作或部署证据。输入区模型统计见下文“模型调用统计”，旧流式观测不再驱动业务视图。
 
-本分项独立 Terra/xhigh 概念 Gate PASS。68 项前端 JS 测试、TypeScript、完整前端构建和 diff 检查通过；完整 lint 为 0 errors、39 项既有 warnings。Chromium 使用生产 Mobile WebUI 与受控原生桥接，验证混合正文、工具定位/展开、附件顺序和下载/open、正式提交去重、快照竞态、停止/断线、队列 retry 与 seq 已读回传；390px 无横向溢出，axe 和 page errors 均为零。长草稿在底部增长时跟随，离开底部后增长保持同一消息锚点与滚动偏移。原生 Android、真实 Core 启动和服务端 Mobile 活动流仍不在此项通过范围。
 
-### Mobile 消息与回复状态订阅（第 10 层部分接线）
 
 已认证并 resume 的连接发送 `session.follow`，payload 为 `message_log_version=2` 与 `after_seq`，envelope 使用共享 Akashic Session。成功返回 `session.follow.ok` 和当前 `through_seq`；每次订阅替换当前连接的旧订阅，未知空 Session 可从 -1 等待第一条消息，超前 cursor、旧版本和多余字段明确报错。订阅命令不进入持久命令收据。
 
-随后 `kind=control/type=session.message` 的 payload 直接携带共享 v2 `messages.appended` 或 `reply.status`，外层仍是 Mobile v1 及当前 `connection_epoch`。原生 adapter 先解析外层、核对连接和所选 Session，再将已解析的共享 frame 放入 v9 `mobile.message-event` 桥接；`session.follow.ok` 是原生订阅命令收据，不作为 Message。历史同步所得 head 与随后订阅之间的追加由 MessageReader 从 seq 补齐。
 
 ```text
 ┌───────────────────────┐      ┌──────────────────────────┐
@@ -1460,13 +1424,10 @@ Channel stop 先关闭新绑定，再等待两个订阅及其 finalizer 完成�
 
 正式消息复用历史同步的整体 JSON 摘要和下载接口；超过 64 KiB 的单条 Message 用完整 `message_ref`，超过 240 KiB 的页分成多帧，保留全部消息、固定 through_seq 与逐帧 after_seq/next_after_seq。不能因为底层 reader 已前进而丢弃页尾。HTTP 与订阅使用同一 JSON 编码 owner，不写消息正文缓存或另一份权威正文。
 
-回复状态沿用 Bootstrap 的 RuntimeReplyStatus，不取得 generation 执行 lease。Mobile 只在整帧超过 240 KiB 时收缩临时 text/thinking 预览，保留全部活动身份、顺序、状态和预分配 message_id，并给被收缩的 preview 标记 `truncated=true`；WebUI 明示完整内容将在提交后显示。收缩按 Unicode 字符进行，不修改 ReplyRead 的原始值；正式 Message 从不截断。活动身份本身超出帧预算时明确失败，不能静默丢活动。
 
 连接的 TaskGroup 拥有订阅；切换 Session、同设备连接替换、断线、发送失败和停机都取消并等待 reader 排空，避免慢订阅保留旧 generation 或已关闭的日志。多个关闭路径只发一次取消，清理完成前不会提前移除任务记录。停机后不接纳新连接或订阅。预览和追加通知均不写 durable inbox：正式消息通过 seq 恢复，重连的预览只来自当前 ReplyRead。
 
-本分项不增加、原位更新、逻辑失效或物理减少 sessions.db 中的事实；认证、resume 与配对仍由既有 Mobile storage owner 处理。恢复点为 `/tmp/mobile-message-follow-backup-20260906/`。正式 Bootstrap 的注入与原生 Android adapter 实现仍待后续配套，不能把仓库内协议和 WebUI 验证作为可部署的完整 Mobile 切换。
 
-本分项独立 Terra/xhigh 概念 Gate PASS，41 项后端联合回归通过，包含真实设备签名认证、resume、分页续读、连接替换、停机清理等待、发送失败与协议错误。前端 68 项测试、TypeScript、Mobile WebUI 构建和本次 lint 通过。390px Chromium 生产视图验证部分预览提示及同 ID 正式提交后提示消失；无横向溢出，axe 与 page errors 为零，长草稿增长时的阅读锚点仍保持。目标后端类型检查为 0 errors、32 项既有 warnings；恢复、协议与 UI 证据在 `/tmp/mobile-message-follow-*`。
 
 ### Web 原始输入与引用接纳（第 10 层部分接线）
 
@@ -1490,16 +1451,13 @@ Web `message.send` 不再要求旧 ChannelContext 或读取 SessionManager。ada
 
 无效目标、控制前缀或冲突身份沿现有 `MessageConflict` 报告；Web 只把这类明确冲突转换为客户端 error，adapter 仍先完成原 binding/连接清理。其他程序、数据库或清理错误继续传播。已订阅的现有连接不会因一次被拒绝的输入而被删除。
 
-此前四项旧 Web 入站测试已经迁到真实 MessageLog、ChannelIdentities、conversation 插件和 MessageBus custody，继续验证关闭总线及取消时的回滚、原 Session/连接保护、真实渠道身份和普通插件晋升后的入站。Web/入站/订阅联合 76 项通过；模型选择、默认回复与 ReAct 另 37 项通过；目标类型检查 0 errors、36 项既有 warnings。本分项恢复点为 `/tmp/message-input-backup-20260906/`；Mobile 入站与完整 AppRuntime 仍待后续接管，正式 workspace 未改动。
 
 本分项独立 Terra/xhigh 概念 Gate PASS，复验 76 项通过。原引用拼接 helper 已无业务调用，按既定“先接管功能、后统一清理”顺序留给清理阶段，不把它保留为兼容路径。
 
 
-### Mobile 原始输入与持久失败恢复（第 10 层部分接线）
 
 `message.send` 要求显式 `message_log_version=2`，`reply_to` 只接受 `message_id`。adapter 保留原文字、附件、模型选择和引用 ID；conversation 在真实 writer 事务内校验引用。暂停和重试沿同一入口形成 pause/resume Control，重试不复制原 Input。旧 client/delivery ID 引用明确拒绝。
 
-Mobile 启动只接收 MessageBus 与上传存储；目录及恢复读已绑定的 MessageCatalog。SessionAdmissions 只拥有输入租约：已声明存在的会话在写事务中核对存在；首次输入可先保留 Session ID，首条 Message writer 才创建 Session。失败输入不产生空 Session 或 Mobile claim。成功提交后增加 claim；提交与回执间崩溃使用原请求重入唯一 writer，完整正文幂等校验后才补成功回执；不能只凭 Message ID 宣称成功。Input、pause 和 resume 都沿同一接纳规则恢复。
 
 ```text
 ┌ 输入 / 上传 ┐
@@ -1512,7 +1470,6 @@ Mobile 启动只接收 MessageBus 与上传存储；目录及恢复读已绑定�
 └────────┬──────────────┬──────────┘
          │ 成功         │ 明确拒绝
          ▼              ▼
-┌ 消费 handoff ┐  ┌ MobileDB 同一事务 ─────────────┐
 │ 保存 claim   │  │ 失败回执 + 附件 rejected       │
 │ 成功回执     │  │ handoff_pending = 1，阻止 TTL  │
 └──────────────┘  └────────────┬───────────────────┘
@@ -1520,17 +1477,12 @@ Mobile 启动只接收 MessageBus 与上传存储；目录及恢复读已绑定�
                    ┌ Bus 消费 handoff、释放租约 ┐
                    └────────────┬───────────────┘
                                 ▼
-                   ┌ Mobile 清零保留位，恢复原 TTL ┐
                    └──────────────────────────────┘
 ```
 
-`MessageConflict` 是明确拒绝；未知异常和取消继续保留耐久输入。恢复先读取原回执：已拒绝的输入只做结算，即使原引用后来变有效也不得重新接纳；本进程仍在处理的输入不重复执行。失败回执保存与附件拒绝在 MobileDB 同一事务内完成，跨库 handoff 删除失败时，失败回执不受七天 TTL 回收。重启先结算待清理拒绝，再恢复未决输入和附件。
 
-持久生命周期见[状态地图](persistence-state-map.md)。附件 rejected 只记录终态与原因，原上传、Core artifact 和映射行全部保留。显式 yoyo `20260906_05_mobile_input_rejections` 按实际 Mobile 数据库配置查找目标，迁前建立 SQLite 备份；同事务扩展 receipt 保留位和 import CHECK，核对原字段/行与完整性。未知或半迁移 schema 拒绝执行，旧库启动明确要求先迁移。迁移只把已有明确失败的未绑定 imports 标为 rejected，并保留对应回执待 Bus 结算；正式 workspace 未迁移。
 
-本分项恢复点为 `/tmp/mobile-input-backup-20260906/`。正式 AppRuntime 的启动接线、原生 Android adapter 与旧非输入命令仍待后续接管；旧纯 helper 的集中清理仍留在用户指定的清理阶段。
 
-本分项独立 Terra/xhigh 概念 Gate PASS。最终输入、Bus、交接存储、迁移与 MigrationRunner 69 项复验通过；输入、Mobile storage 与迁移 35 项通过；较早联合消息读/订阅、SessionStore、Dashboard 等 174 项通过。目标类型检查为 0 errors，独立检查报告 42 项既有 warnings；diff 检查通过。证据覆盖真实插件接纳、取消后重开、完整内容碰撞、首次输入无空会话、附件拒绝保全、TTL 期间跨库删除失败、旧库有行迁移及指定 Mobile 数据库路径。
 
 
 #### 模型调用统计
@@ -1544,19 +1496,15 @@ Mobile 启动只接收 MessageBus 与上传存储；目录及恢复读已绑定�
           │ call_record_id              │ MODEL_CALL_STATS（只读）
           ▼                            ▼
 ┌────────────────────┐     ┌───────────────────────────┐
-│ 预览 / model.facts │ ──→ │ Web / Mobile 输入框统计   │
 └────────────────────┘     └───────────────────────────┘
 ```
 
-`MODEL_CALL_STATS` 只返回调用 ID、模型名、状态、可空耗时与 usage，不公开完整 binding、auth identity、credential 或 continuation。Web `GET /api/chat/model-settings/calls/{call_id}` 和 Mobile `model.call.get` 使用同一个已发布 Root 的窄查询；未知调用和未安装统计服务分别明确失败。Mobile 查询是 ephemeral，不保存 command receipt。查询、刷新和重连均不写 Message、调用账或其他运行状态。
 
 两端输入框优先显示当前活动调用，空闲时读取最后一条模型 Output 的调用 ID。流式生成期间每秒刷新同一记录；完整且准确的 usage 才以 `output_tokens / ((duration_ms - first_token_ms) / 1000)` 显示平均速度。缺失、部分用量、未结算或非正生成时长不估算速度；旧记录不从秒级时间戳推算耗时。切会话、断线和组件卸载取消旧查询，迟到结果不能显示到另一会话。原 ClientTurnMetricsTracker 已无活跃 UI 调用，留待统一清理。
 
 本分项增加 yoyo `20260906_06_model_call_timing`，旧 `model_calls` 只加两列，已有行均为 NULL；未知 schema 或额外索引/触发器拒绝迁移。先建立 SQLite 恢复副本，再原子执行 DDL，提交前核对旧字段与最终 schema。新库与已迁移库使用同一个 schema，重复迁移不增加备份或改写旧记录。Models owner 仍只 INSERT 新调用、原位结算该调用；没有失效或自动删除协议，历史 Message、模型设置 revision 与 credential 保持不变。源码恢复点为 `/tmp/model-call-stats-backup-20260906/`。
 
-Mobile WebUI v9 增加 `readModelCallStats(requestId, callId)` 与 `receiveModelCallStats(requestId, value)`；原生负责把前者转换为 `model.call.get`，按 request ID 转交成功 payload 或失败结果。Android 的 transport allowlist/dispatch/bridge、RealtimeSession 查询关联、协议 JSON 与 source pin 尚未配套；当前只验收仓库内协议与受控桥接，不能宣称真机可用或可部署。正式 AppRuntime 仍待整体接线，原生配套仍是发布前提。
 
-本分项独立 Terra/xhigh 后端与前端概念 Gate PASS。最终 Python 联合回归 82 项通过，前端 chat JS 72 项通过，TypeScript 及两个临时目录的生产构建通过。目标后端类型检查为 0 errors、142 warnings；本次前端 lint 为 0 errors、35 项既有 warnings。浏览器验证真实生产 Web/Mobile bundle 的活动刷新、503 恢复、重连读取原耗时和切会话迟到结果；390px 无横向溢出，axe 与 page errors 均为零。报告位于 `/tmp/model-call-stats-*`。全项目 change-impact Gate 在本分项期间提前运行，因已记录的旧 Channel `start(ctx)` 接线失配而停止，派生容器与网络已清理；该报告只保留为未完成记录，不属于统计分项通过证据，也不替代最终整栈 Gate。
 
 
 ### Subagent 主回复回传
@@ -1620,9 +1568,7 @@ Timer 到期先记录 attempt，再读邮件水位。到期检查和五分钟池
 |---|---|---|
 | Core 启动 owner | 继续创建旧 SessionManager/AgentLoop；直接装配已迁移 MessageLog 与窄资源 owner | 直接装配 MessageLog、SessionAdmissions、ChannelIdentities、InboundHandoffStore 和 ArtifactStore。插件负责回复、来源与发送，不保留第二条执行链 |
 | 内置 Context 授权 | 空默认要求用户逐项配置；在普通 Context 配置声明内置组合默认值 | 默认允许 markdown_memory 贡献 Prompt、compaction 拥有摘要。授权仍由 Context 配置拥有，可显式覆盖，不在 Core 写插件名称判断 |
-| Akashic 送达 | 等待在线 Socket/设备回执；确认正文已保存在收件 Session | 普通 akashic_sender 核对 `message.session_id == 'akashic:' + address` 后返回 delivered。Web/Mobile 独立从日志补读，离线不使已保存正文变成失败 |
 | Akashic 恢复 | 新增一份 Sender receipt；解析 Delivery 内部 key；沿原幂等 send 再确认 | `query` 返回 None，`idempotent=True`。恢复仍由 Delivery 读取原 Message、固定 key/address/binding，再调用无外部 I/O 的 send；不写第二份正文或发送账 |
-| 渠道运行依赖 | 向 adapter 继续交入全功能 SessionManager/MessagePushTool；只交传输资源 | ChannelContext 移除这两个业务 owner；Mobile 与同一 ChannelHost 生命周期接通，TG/QQ 的 `/stop` 走真实入站和来源 Control |
 
 ```text
 ┌─────────────────┐    ┌───────────────────┐
@@ -1635,12 +1581,10 @@ Timer 到期先记录 attempt，再读邮件水位。到期检查和五分钟池
                      └──────┬──────┬──────┘
                             │      │
                   ┌─────────▼─┐  ┌─▼────────────────┐
-                  │ Web/Mobile│  │ Delivery          │
                   │ 按 seq 补读│  │ 固定原 Sender/Sink│
                   └───────────┘  └──────────────────┘
 ```
 
-当前验证：正式 `build_core_runtime` 在临时新库装配普通 conversation 并接纳 Input，关闭后可重读；旧 Session schema 在租约清理前明确拒绝且 SQL dump 不变。完整内置候选同时加载，并通过真实 Tools → message_push → Delivery → akashic_sender 完成离线推送。Core/Mobile 入站联合 17 项通过。恢复点 `/tmp/core-message-bootstrap-backup-20260907` 保存本段之前的文件；新增文件仅位于本任务 worktree。
 
 仍待完成：Control API/SDK、App 其余装配、外部渠道 Sender、默认 Prompt 材料、正式 manifest、旧记录迁移与集中清理/累计 Gate。旧 Channel 活动展示 helper 尚未删除；当前证据不表示这些旧 helper 或旧控制协议仍获新链路执行权。正式 workspace、外部插件仓库和设备均未修改。
 
@@ -1716,7 +1660,6 @@ Timer 到期先记录 attempt，再读邮件水位。到期检查和五分钟池
 
 额外真实 socket 验证发布中的短请求继续使用 old snapshot，后续请求使用 replacement，未关闭的 follow 不阻止旧 snapshot drain。此用例复用相同 Root 编译新的快照，仅证明请求 lease 与订阅边界；不把它当完整插件 generation 升级或正式部署证据。
 
-Programmatic 最终分项对账：来源、Web/Mobile Channel、Subagent、Core/App、默认回复、CLI 与结果联合 108 项通过；标准工具与 Subagent 另 24 项通过。扩大回归先发现旧夹具仍默认授予未安装的 Prompt 材料，已在夹具明确组合所需材料后重跑通过，没有在生产代码增加空材料降级。Terra/xhigh 对固定 API、状态 owner、来源与回复注册、exact snapshot、学习与读取/发送边界给出概念 Gate PASS，无必须修项。下一步是默认 Prompt 材料、原生 Sender、完整启动与正式 manifest/迁移，随后按约定集中清理和累计 Gate。
 
 
 ### 2026-09-07 · Prompt 与 Skills 接入选择
@@ -1860,7 +1803,6 @@ Delivery 恢复 unknown 且 query 无新证据时保留原 receipt，防止丢�
 
 ### 第 09 层候选交接与第 10 层清理入口（2026-09-07）
 
-默认 App、独立发送、Scheduler/Subagent/Wake、Control v2/SDK、程序来源、Prompt/Skills、Web/Mobile Message 接线与工作台已进入同一候选。正式 workspace、Android 原生配套和外部插件源码迁移未执行；Message 删除、历史摘要账转换、旧不可确认发送/工具效果恢复与 Akasha 重建仍按前述 TODO 保守保留。
 
 新增功能回归首轮为 318 passed、25 failed；失败均为 Wake fixture 未安装新增的真实 `sources` 依赖。补齐该依赖后原 25 项全部通过，未改断言或生产逻辑。最新 App/模型/召回/初始化联合 23 项通过。Web Node 回归 72 项、生产 Python 全量类型检查、TypeScript 和最终插件构建通过；完整测试目录收集 1826 项。测试代码类型检查仍有 332 个错误，完整 Python 行为回归、公开语义场景与最终 Gate 尚未通过，不能以分项结果代替交付验收。
 
@@ -1868,9 +1810,7 @@ Delivery 恢复 unknown 且 query 无新证据时保留原 receipt，防止丢�
 
 交接前文件级恢复点为 `/mnt/data/akasic-agent-backups/message-plugins-09-before-cleanup-20260907/`（base、完整改动清单、binary patch、含未跟踪文件的归档）；分项恢复点继续有效。清理后须重新完成累计类型/测试/build、change-impact Gate、完整公开场景、独立概念评审和 stacked draft PR 的精确 head CI，未经授权不得 merge 或 deploy。
 
-### Web/Mobile 停止命令交接前置条件（2026-09-07）
 
-Mobile WebUI 停止生成必须调用 `sendSessionCommand(session_id, "/stop")`，bridge 严格要求两个参数；Android 原生实现必须按显式 `session_id` 投递普通 `message.send`，不携带或消费草稿附件，也不能退回读取当前选中会话的 `sendCommand`。旧 APK 不支持该方法，不能作为已验证运行时，必须先完成配套发布。
 
 
 ### 第 10 层强行为 fixture（2026-09-07）
@@ -1955,7 +1895,6 @@ Mobile WebUI 停止生成必须调用 `sendSessionCommand(session_id, "/stop")`�
 
 可移植边界：系统场景不导入生产实现。通过 `AKASHIC_FIXTURE_COMMAND` 指定 JSON argv，使用 `{root}` 和 `{model_endpoint}` 替换启动位置；替代服务须发布同样的 readiness JSON，并提供 SDK、Web bootstrap 和模型设置协议。Python 启动器的测试 seam 单独负责初始插件配置、生产者 stdin 输入以及精确提交点崩溃注入；迁移到其他语言需要实现这些测试适配，不能把内部故障注入宣称为纯黑盒。外部模型只替换决策与 embedding 返回值，真实工具、状态、归档和投递不替换。
 
-日常内置行为修改可用这些自动化结果取代重复的手动走流程。它们不能证明真实模型的决策质量、浏览器视觉与交互、手机生命周期、Computer/宿主权限、外部插件、真实网络认证或正式 workspace 升级。改到这些边界或发布时仍须保留对应的小范围真实验收；本轮没有运行设备、正式部署或外部插件 E2E。
 
 恢复点：`backup/pr558-before-system-fixtures-20260907` 与 `/mnt/data/akasic-agent-backups/pr558-system-fixtures-20260907/`。所有运行写入只在测试临时目录；最终测试、独立概念 Gate 与 change-impact Gate 结果记录在 PR。
 
@@ -2049,7 +1988,6 @@ hua-home 正式源为 `6429c806`，未停止或切换服务。SQLite 原生备�
 | 附件与向量 | 8 条附件、6 条关系、11,272 条向量原值保持；关系的 direction 列已按批准合同由原 role 可恢复地移除 |
 | 摘要 | 5 条旧 session_compactions 原行保留；两个有效 head 分别是 v0 generation 1/4，累计覆盖 277/2,239 条来源消息，SummaryLookup 精确读取原文 |
 | Session | 306 条均保留；原列只有追加历史所需的 next_seq、updated_at 改变，另增加 attributes |
-| 其他数据库 | 没有减少原行；Mobile 29,106 条回执保留并新增 handoff_pending，Akasha 只增加迁移 metadata，模型与安装账本只增加新表，yoyo 追加 18 项记录 |
 | 调度 | 1 个原任务按 JobStore 解码后完全相等，只增加 version/jobs/operations/fires 容器 |
 | 文件 | 136,824 个原文件再次逐个 SHA-256 比较，仅 9 个已解释路径变化；原 MEMORY/SELF、附件文件和所有原插件数据文件未改 |
 
@@ -2057,7 +1995,6 @@ hua-home 正式源为 `6429c806`，未停止或切换服务。SQLite 原生备�
 
 #### 行为验收
 
-1. 十四个插件从正式 install_git_plugin 安装到独立 workspace，固定 Core `4bf091a7`；11 个联合场景通过，包括四路真实 stdio MCP、两个管理端口、Message→tool_search→GitHub 工具→Skill→Citation/Meme 附件、Shell 安全与删除恢复、命令、EventMail、Mobile、SQLite 完整性及同 workspace 重启。使用受控端点和禁网运行，没有外部发送。
 2. 最终 Core `80a1a073` 复用上述不可变 artifact，完成 14 个组合挂载、Content 解码、四库完整性及端口启动/回收的受影响链复验。13 个插件末次提交只改 CI workflow，GitHub Watch 运行提交不变，运行树相等性单独核对。
 3. 真实迁入消息进入 PluginManager、ModelsStore、Compaction、Context 与 Markdown。独立 v0 场景复制实际 generation 4 head、generation 3 parent 及 2,239 条累计来源消息；Context 读取原摘要，新 Output 引用其 binding，Markdown 沿同一父链生成 8 类 receipt。eligible 旧用户输入参与，真实 suppress 输出被排除；MEMORY/SELF before-image 与服务器副本一致。重启后 receipt 不变，模型调用保持一次 success。所有来源行逐列相等，作者未重写。
 本次原 `memory/markdown-profile-writes.db` 为 0 行，latest_applied=None；v0 场景因此复制真实 MEMORY/SELF 后从空 Markdown receipt 开始。另一个旧库中的 4 条 session_compaction_receipt 是总结生成账本，不能伪装成 Markdown 已应用进度。本次证据不覆盖其他 workspace 中非空旧 Markdown receipt 的引用迁移。
@@ -2075,18 +2012,3 @@ GitHub Watch 移除运行时 `turn_id` 读写，并以明确的停机配置迁�
 首轮在 2.3 GB 配额下发生 cgroup OOM（exit 137），不能计为成功；完整 inspect 与日志保留。Core 配额改为 3.2 GB 后正常启动与重启。两个 Docker internal 网络阻断真实外发；容器内和容器 IP 的 health 均为 ready，但该配置没有建立宿主 loopback 发布监听，因此不声称验证了宿主发布路径。
 
 这一轮还真实发现 Observe `0ab8ad5d` 的后台投影缺少 runtime scope。Observe `f60fab88` 改为每轮取得短 scope，在等待下一轮前释放。真实 OwnerState/RecallRecords 的 PluginManager 回归先复现相同授权错误，再通过完整投影和重启；该版本经正式安装链装回旧数据副本，连续 78 秒多轮投影错误为 0，919 条原 rag_queries 可读且数据库完整。副本没有 Akasha recall owner record，因此新增投影由上述真实 owner 用例证明，不伪造旧数据输入。最终 Fleet `daf6dbb` 固定此版本，14 个远端 PR head 与 gitlink 再次核对一致。
-
-每轮结束均清理本次 Core、Controller、Computer workload、网络与 Bridge；原失败证据与成功补验分开保存。新增证据入口为 `supervised-e2e/SUPERVISED_E2E_REPORT.md`、`supervised-e2e/OBSERVE_F60_SUPPLEMENTAL_E2E.md`、`external-cleanup/final-review.md` 和 `published-plugin-verification.json`。正式部署及真实服务切换未执行；Android 原生配套由独立移动端 PR 交付。不等待远端 CI，不合并任何 PR。
-
-
-#### Android 正式包配套
-
-[Mobile PR #90](https://github.com/kachofugetsu09/akashic-mobile/pull/90) 固定源码 `bf71b0e8df84c7c1bf98c45b88e95f6970aa3393`，配套 Core 运行代码仍为 `80a1a073`。Message v2 协议、内置 WebUI 与 runtime lock 固定相同 Core 来源。正式 [0.8.37](https://github.com/kachofugetsu09/akashic-mobile/releases/tag/v0.8.37)（versionCode 75）与旧 Core 不兼容，正式切换必须配套升级。
-
-Android 以 Message timeline 替换旧 Turn/attempt 投影，发送 Message、COMMAND 和 outbox 共用一个 ID；Input 接纳结算由本地投影 owner 执行。Room 16→17 重建旧服务端缓存并保留待发工作，17→18 一次迁移本地发送/重试身份及引用；旧 Core 已接纳 ID 原样保留，完整 Input 结算旧待发，下载中的正文保留 manifest 与进度，不删除附件文件。旧 15→16 迁移保持原批准边界。
-
-同签名正式 APK 已在 Pixel 7 执行真实 Room 17→18 升级；迁移前一致备份为 47 Message、2 outbox，迁移后 46 Message、2 outbox，合并一条重复本地投影，外键与身份检查通过。最终 APK 验证新发送、跨安装离线排队/重连补发及单次接纳、三个真实工具结果与完整调用引用、旧已接纳消息结算、104,026 字节长消息全文相等和在线/离线末尾搜索。模型响应受控，工具和本地发送由真实 Core 执行；没有真实外部发送。
-
-214 JVM 测试、生产/AndroidTest 编译、lint 与正式签名构建通过。仓库 AndroidTest 仅编译，同签名只读数据库探针实际执行；不将探针称为完整设备 Gate。构建两核/4 GiB 上限，耗时 6m30s，峰值 2.68 GiB。源码、旧 APK 和 Room 17 私有数据库恢复点保留，Keystore 未导出。探针已卸载、ADB reverse 清除、手机设置恢复、fixture 端口关闭；正式 APK 留在手机，其他 profile 的待发工作保留。
-
-APK SHA-256 为 `415aa40634dbd3e63d8364797a078dcf3bc835eb92c850f4743fc0b0e88440c7`。本地证据入口：`/home/huashen/akashic-message-mobile-artifacts/device-e2e/FINAL_E2E.md`。本次没有合并 PR 或切换 hua-home 正式服务。

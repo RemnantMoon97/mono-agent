@@ -7,7 +7,6 @@
 
 ## 背景
 
-主题统一后，各页面虽然共享浅色、深色和暖纸主题，仍主要使用 `bgSurface`、`actionSoft` 等局部角色和手写控件。Chat、Mobile WebUI、6321、Dashboard 与插件面板会因此分别解释层级、选择和运行状态；只增加圆角或卡片不能形成 Material 3 的颜色语义。
 
 `@material/web` 2.5.0 提供可访问的 Material 3 Web Components，但官方已经声明维护模式。维护状态不会阻止本项目采用成熟组件，也意味着 Akashic 不能把主题所有权交给组件库内部默认值。
 
@@ -35,7 +34,6 @@
              └─────────────┼──────────────────┘
                            ▼
        ┌─────────────── UI component language ───────────────┐
-       │ 6321 │ Web Chat │ Mobile WebUI │ Dashboard │ Plugins│
        └──────────────────────────────────────────────────────┘
 ```
 
@@ -52,6 +50,4 @@
 ## 验收
 
 - 每个主题完整声明并校验 Material 与 Akashic 领域角色。
-- 6321、Chat/Mobile WebUI、Dashboard 与插件公开控件从同一目录取得语义颜色。
-- light、dark、warm-paper 均可构建；Mobile 状态、共享 Chat、typecheck 和 lint 通过。
 - 视觉验收覆盖桌面与移动宽度、主要/次要/危险动作、选择、成功、警告、错误和工具轨迹；无法运行浏览器时必须明确保留为未验证项。

@@ -226,7 +226,6 @@ collect observation ──► gate
                  delivery + domain state settle
 ```
 
-hazard、reservoir、ack、quota、dedupe 和 next wake 都由未来插件拥有。gate 不调用 scoped Turn port 时，Core 只看见 Timer callback 完成；调用后才看见一个 Turn 和它的 terminal。若实现 Wake 必须给 Core 增加 `if proactive`、通用 `Skip` 类型、私有 hook 过滤或数据库知识，说明插件边界设计失败，应先回到规格而不是扩展特判。
 
 ## 10. 持久状态与减少协议
 

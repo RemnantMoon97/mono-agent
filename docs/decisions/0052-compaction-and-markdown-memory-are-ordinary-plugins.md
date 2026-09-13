@@ -90,7 +90,6 @@ Core atoms                         ordinary plugins
   included/excluded 分支和错误分类相同；登记的语义变化只有 PENDING/optimizer 退役与 direct write。
 - `source_ref` 重放不重复写；同 ref 内容漂移 fail-loud；崩溃点不会丢 Session 消息或覆盖
   MEMORY/SELF 的最近成功版本。
-- Wake、Subagent、QQ、Mobile inspection 与 Akasha 逐项通过迁移清单中的行为 oracle。
 
 ## 2026-09-07：请求材料与新事实的来源
 

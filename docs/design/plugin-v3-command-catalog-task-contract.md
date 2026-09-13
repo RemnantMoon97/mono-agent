@@ -24,7 +24,6 @@ passive input ── known slash command ─┴─► direct result / no Session
 ```
 
 本任务不迁移插件、不写 Session/database/workspace/plugin-data、不发送真实渠道消息，不把 catalog 合并进
-`ToolRegistry`，也不复制 v2 `telegram_bot_commands()/mobile_bot_commands()` 作为新的插件 API。
 
 ## 2. 合同与失败语义
 
@@ -32,13 +31,10 @@ passive input ── known slash command ─┴─► direct result / no Session
    `PluginCommands.register(ctx, CommandDefinition(...))` 注册，Effect 反向注销 canonical name 与 aliases。
 2. canonical name、alias 和迁移期 v2 claims 共享同一 namespace；duplicate 在 candidate/stable snapshot compile
    阶段 fail-loud。descriptor 固定 `name/description/input_hint/aliases/owner` 并进入 snapshot identity。
-3. candidate registry 只存在 candidate snapshot；Manager/Telegram/Mobile/WebUI discovery 只读取 current stable
    snapshot。candidate discard、formal rebuild 与 payload replacement 后 catalog identity 必须一致。
 4. known command 在 stable lease 内执行；unknown/non-command 继续原 lifecycle。handler 必须返回非空
    `CommandResult(success|error, text)`，异常或非法结果进入既有 turn error path，不伪装成功。
-5. 第一版 universal descriptor 同时投影到现有 Telegram/Mobile discovery adapter；aliases 不作为展示项。
    最后一个 v2 consumer 迁走后删除两个 Manager 聚合属性和 bootstrap 固定传参。
-6. v3 canonical name 采用 Telegram 与 Mobile 共同可接受的 `[a-z][a-z0-9_]{0,31}`；迁移期 v2
    claim 继续接受原有连字符，避免在迁移完成前偷改旧插件输入合同。Core 内建
    `/stop` 保留，canonical、alias 与 v2 claim 均不得占用 `stop`；description 最长 256 字符。
 7. command admission 由 `AgentLoop` 在 model selection、Session、resume 与 `TurnStarted` 之前执行；
@@ -47,7 +43,6 @@ passive input ── known slash command ─┴─► direct result / no Session
    provisional target，旧 stable 仍是唯一公开 `current`，但暂停新 lease，再发布远端 catalog。
    成功后才原子切换 `current`、开放 candidate 并 retire 旧 stable；失败则恢复旧远端 catalog，
    公开 stable pointer 从未经过 candidate，candidate 也从未接受 lease。
-   Mobile discovery 每次从 exact stable snapshot provider 读取。纯 command catalog 切换只暂停新 admission，
    不调用 endpoint quiescer，不等待旧 stable lease；旧 lease 继续观察旧 snapshot，新 admission
    只能观察最终打开的新 snapshot。
 

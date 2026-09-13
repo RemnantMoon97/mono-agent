@@ -62,7 +62,6 @@ generation、权限继承或领域状态。服务端 API 仍由原领域 owner �
 集中拒绝违反项，避免一个普通插件覆盖兄弟插件的动画或卸载后改变兄弟视觉。
 
 0018 的共享消息、移动 WebView 和单一对话实现约束继续有效；桌面顶层页面的注册与 adapter 改由
-`conversation-ui` 普通插件拥有。Android baseline、Room、outbox、Bridge 和 Mobile WebUI generation
 不随本决定迁移。
 
 ## 理由
@@ -94,4 +93,3 @@ generation、权限继承或领域状态。服务端 API 仍由原领域 owner �
 - [x] Candidate 只验证静态 artifact；浏览器 ABI 由唯一 Host 按 module 隔离，不引入第二套 headless 生命周期。
 - [x] 父插件 CSS 沿 child host 向下生效；子 module CSS 只作用于自己的 entry host，不能修改父级或兄弟。
 - [x] 父 entry 撤销会递归撤销子 mount；一个 module 失败不使 Shell 或兄弟 entry 白屏。
-- [x] UI 迁移、卸载和回滚不改写 Session、模型 Connection、credential、plugin-data 或 Mobile generation。

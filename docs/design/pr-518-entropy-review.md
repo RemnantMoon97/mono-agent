@@ -44,11 +44,9 @@ v2/legacy Channel ──► agent.looping.InterruptController ──► Core 私
 
 ### 2. InterruptController 被删时仍有真实生产调用者
 
-- 证据：`infra/channels/contract.py`、Telegram、QQ、Web/Mobile channel、`bootstrap/channels.py` 都仍消费该协议。初次审查引用的本地 QQBot/Feishu 源码已过期；两者远端 `main` 已迁入 pure v3，不再导入该协议。
 - 失败：pytest 收集阶段出现 19 组 channel/bootstrap import error，运行时无法启动 Channel。
 - 处理：`35baa062` 已恢复协议以止血；channel host/client 17 项通过。
 - 上位替代：公共 `ChannelControlPort` 已存在，`bootstrap/app.py` 已把它绑定到 `ConversationRuntime.request_interrupt()`。
-- 结论：QQBot/Feishu 已是普通 v3 插件；该私有协议现在只服务内建 legacy Channel。删除它必须先迁移 Telegram、QQ、Web 和 Mobile，不能借外部插件迁移提前删除。
 
 ### 3. 五个插件 service 的 `.formal` 被删时仍有插件消费者
 
@@ -197,7 +195,6 @@ v2/legacy Channel ──► agent.looping.InterruptController ──► Core 私
 | `e52c8108` | 删除 lifecycle façade 形式测试 | 65 passed（严格 slot 个案另行核验） |
 | `a75d2d6f` | 保留 lifecycle slot 既有兼容合同 | lifecycle 66 passed |
 | `c905348f` | 删除 AgentLoop 第二套中断/续接 owner | runtime/control/channel 176 passed；pyright 0 errors |
-| `646ff15c` | 合并最新 main，并按普通插件 Web UI 解决冲突 | Python 冲突范围 230 + 32 passed；mobile Web 122 passed；typecheck/build passed |
 | `d04f9b18` | lifecycle slot 与持久化 tool arguments 改为 fail-loud | 121 passed；Basedpyright 0 error；正式 14,734 次调用全为 object |
 | `9026d555` | 修正测试中不合法的 tool-call fixture | message lookup/context 73 passed |
 | `8fc1bebc` | 恢复三个仍由生产代码使用的运行依赖 | 65 passed；全新镜像构建与全部选中场景通过 |
@@ -205,10 +202,8 @@ v2/legacy Channel ──► agent.looping.InterruptController ──► Core 私
 | `b85386e4` | 完成 typed executor 与 snapshot lease 迁移 | production/tests Pyright 0 errors；95 passed |
 | `baad96ab` | 恢复 `.claude` 配置及其既有 Gate owner | change Gate 21 passed；catalog audit passed |
 
-第一次完整 pytest 暴露 `29 failed, 3255 passed, 6 skipped`；29 项已按上面的真实半迁移、测试残留和 ABI 变化分别处理。合并 `origin/main` 后第一次全量的唯一失败是 mobile Gate 明确拒绝尚未提交的 merge index；形成 clean merge commit 后该 Gate 与 change/release Gate 32 项通过。最终 Core 全量为 `3291 passed, 6 skipped`；完整前端 build、TypeScript typecheck 和 mobile Web 122 项通过。
 
 GitHub 的首轮 change-impact Gate 因 `.claude/settings.json` 被删除、同时 `.claude/**` 的既有 tooling owner 也被删除而报 `UNMAPPED_CHANGE`。`baad96ab` 撤销这项与 Core 熵回收无关的删除，并恢复原 owner；change Gate 21 项和 catalog audit 均通过。此前全新 Docker Gate 已成功构建镜像且全部 27 个选中场景通过；最终 head 仍需等待 GitHub 新一轮检查给出页面状态。
 
-独立 Concept Gate 在 `deccf1a8` 上复核 lifecycle、phase 与 v3 Channel 共 140 项、18 个 fleet 插件和 error-level Basedpyright，结论为 `PASS`，P0/P1 均为零。Core-only `recovery_ingress` 只承载已批准的 Mobile durable handoff，不授予普通插件特权。
 
 仍有两个已知但不阻塞本 PR 的边界：仓库外若有人直接导入已删除的 Core 私有 façade，会遇到 ABI 变化；当前 manifest、fleet lock、正式安装清单和已核对 v3 插件均未发现这种消费者。Feishu 对畸形 SDK event 的静默返回应在插件仓库作为 provider 边界问题单独修复，不在 Core 增加兼容旁路。

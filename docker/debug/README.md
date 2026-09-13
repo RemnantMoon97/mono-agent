@@ -323,7 +323,6 @@ retryable+deferred 三条边界，不访问外部 provider。
   "mode": "stream",
   "barrier": "turn-entered-provider",
   "deltas": ["hello ", "world"],
-  "usage": {"prompt_tokens": 7, "completion_tokens": 2, "total_tokens": 9}
 }
 ```
 
@@ -366,19 +365,16 @@ container
 
 ## 插件变更 Gate
 
-pure-v3 候选证据由 fleet、Mobile 和公共 WebUI 三个边界组成。所有 Gate
 使用 exact commit 锁、一次性 workspace/plugin-home/HOME 与受控端点，不读写正式
 Akashic workspace、正式凭据或 hua-home 服务。
 
 这些是插件候选与发布 Gate，不是普通 Core Pull Request 的固定矩阵。普通 Pull Request
 运行全部保留回归和按 diff 选场景的统一变更影响 Gate；当改动进入插件候选时，
-`Plugin v3 Candidate Gates` 手动 workflow 只运行 fleet completeness、Mobile 和公共 WebUI。
 
 ```text
 精确能力 lock
       │
       ├── fleet ─────── 全插件来源、v3-only 与 retired exclusion
-      ├── Mobile ────── Python catalog / JS ABI / plugin tests
       └── WebUI ─────── Citation / Meme / public WebSocket
 ```
 
@@ -387,7 +383,6 @@ Akashic workspace、正式凭据或 hua-home 服务。
 ```bash
 python docker/debug/plugin_v3_fleet_gate.py \
   --require-clean-core --require-full-core-history
-python docker/debug/plugin_v3_mobile_gate.py --require-clean-core
 python docker/debug/plugin_passive_webui_v3_e2e.py --require-clean-core
 ```
 

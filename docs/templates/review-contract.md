@@ -28,7 +28,6 @@ worktree_writers:
 ```yaml
 goal: ""
 semantic_delta: none|compatible|breaking
-capability_owner: core|protocol|mobile|plugin|mixed|not_applicable
 consumer_scope: []
 runtime_patch: none|required
 runtime_patch_reason: ""
@@ -80,8 +79,6 @@ device_gate:
   runtime_tree: ""
   candidate_application_id: ""
   candidate_test_application_id: ""
-  app_apk_sha256: ""
-  test_apk_sha256: ""
   package_inventory_command: "pm list packages -u"
   collision_result: clear|blocked
   install_mode: no_replace
@@ -95,9 +92,6 @@ device_gate:
   cleanup_exit: 0
   gate_result: passed|failed_setup|failed_test|failed_cleanup
   residual_packages: []
-  mobile_lab_provenance: verified|operator_asserted|not_applicable
-  mobile_lab_core_commit: ""
-  mobile_lab_run_id: ""
   evidence_bundle: ""
 ```
 

@@ -51,4 +51,3 @@ candidate Root ── same Service key ──▶ read() fail-loud, zero Session 
 - 快照与 Core cache 脱离，插件侧修改不反向污染；
 - candidate 调用 `read()` 在任何 Session lookup 前 fail-loud，stable snapshot 与数据库摘要保持不变；
 - Manager terminate 后 Root Service/Effect 均为空；
-- Status Commands 真实 Manager Gate 证明 committed command 与 Mobile query 都只消费这项只读能力。

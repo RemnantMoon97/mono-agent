@@ -11,7 +11,6 @@ Session repository、全局 ToolRegistry 或控制面客户端。
 change_type: migration
 semantic_delta: compatible
 capability_owner: core
-first_consumer: kachofugetsu09/github-watch
 allowed_effects:
   - Core source, tests, docs and disposable workspaces
   - controlled programmatic turns and a dedicated remote test repository in the final Gate

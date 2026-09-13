@@ -21,7 +21,6 @@ Akashic 的身份和人格此前由 Python 常量直接拼入 Main、Proactive �
 - Veda 是必须纳入 workspace 备份和恢复核对的权威 Markdown。
 - 初始化与代码升级不得覆盖用户定制人格；恢复默认必须使用名称明确的命令。
 - Veda 损坏会阻止 Agent runtime 或下一次 prompt 组装，需要维护者运行恢复命令。
-- 移动端继续作为 Core 消费者，不增加人格协议、数据库或客户端状态。
 
 ## 验收
 

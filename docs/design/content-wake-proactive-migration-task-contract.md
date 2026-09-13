@@ -242,11 +242,7 @@ Emotion PF-import/cursor 仍为 0；下一个普通 Timer tick 后 cursor 恰为
 各为 1。
 
 远端回执也已闭合：PF PR #8 的
-[contract](https://github.com/akashic-plugins/proactive_feedback/actions/runs/32639835703/job/97195110938)
-与 [plugin-tests](https://github.com/akashic-plugins/proactive_feedback/actions/runs/32639835703/job/97195110846)
 均通过；Emotion PR #6 已合并为 `9c8d94bdb13cfc2602409ba23556a61e26a3f031`，其
-[contract](https://github.com/akashic-plugins/emotion/actions/runs/32640486430/job/97196710259)
-与 [plugin-tests](https://github.com/akashic-plugins/emotion/actions/runs/32640486430/job/97196710357)
 均通过。
 
 ### PR-G · Wake 真 provider 与全插件兼容 E2E
@@ -306,8 +302,6 @@ H3 已把 Core 运行态收成普通 `BACKGROUND_JOBS` Activity：启动、快�
 outcome ledger 只认识 interval/programmatic/LLM job，不再认识 proactive catalog、私有 family、
 `DriftFinished`、domain effect 或 paired documents。旧 `proactive_v2` runtime、Default/Wake 私有
 插件和 Dashboard 路由已经从代码树删除。H4 又删除了旧配置类型/parser、setup 向导、Prompt、
-Dashboard 前端和 Mobile `proactive-context` 投影；任意空或非空 `[proactive]` 都在打开 workspace
-store 前明确失败。Session 的 `last_proactive_at` 与 H2 历史迁移入口继续保留；Mobile
 `message.proactive` decoder/event 已由 0045 删除，客户端只按 Session seq 同步。
 `init_workspace` 不再创建 `proactive.db` 或 `PROACTIVE_CONTEXT.md`，但 H2 inventory/history 继续
 只读已有文件，任何代码升级都不删除 workspace 数据；`force` 初始化也保持既有文件 inode 与
@@ -315,7 +309,6 @@ digest 不变。
 
 这只证明 isolated Core 已没有旧 island，并不等于正式 activation READY。Observe #5、Emotion
 #6 与 Feed #7 已合并；Daynight 则以四类零消费者证据退出最终 fleet，并与 PR-G 固定的
-Content/Wake/Drift/source interoperability E2E 一起验证；H2 对未交接 continuity、quota、pending
 documents 或 Wake archive consumer 的 `BLOCK` 也必须清零。上述条件未满足时保持旧正式 runtime，
 不修改 cache、不用 no-op compatibility shell 掩盖依赖。
 
@@ -339,7 +332,6 @@ legacy source row ── inventory ──▶ source/target owner adapter
 | `PROACTIVE_CONTEXT.md` | Wake 私有 exact-bytes archive + versioned receipt；仅 Wake `BeforeTurn` 读取并注入 | 同上 | archive/receipt 不成对或 digest 不符时 `BLOCK` |
 | Drift paused/staged | 没有可恢复 proposal payload，H2 不伪造 proposal | 无 | `proposal_payload_unrecoverable` |
 | `proactive.db` continuity 表：deliveries、session、context、rejection、seen、kv | 当前没有逐项接收其连续性语义的 v3 owner；Core 每表只保存 row count + ordered digest 的阻塞摘要，不复制 row | 无 | `proactive_continuity_owner_unavailable`；原库由 history decoder 只读，tick/step/semantic 同样保留但不阻止 |
-| `proactive_quota.json` | 当前窗口计数仍会改变下一次动作，没有接收 owner 时不能解释为空 | 无 | `proactive_quota_owner_unavailable`；按 exact bytes 备份并保留原文件 |
 | proactive documents active intent / nonempty pending | 需要成对的领域 owner handoff，H2 不拆成单 owner | 无 | `paired_target_handoff_unavailable` / `pending_document_owner_unavailable` |
 | generic `BACKGROUND_JOBS` rows | 继续由 v3 background-job ledger 拥有；只进入历史投影 | 无 | 不盘点、不迁移、不阻止；GitHub Watch running 也不属于旧 island active state |
 
@@ -358,7 +350,6 @@ view 使用不初始化 schema/WAL 的 immutable read；若存在未 checkpoint 
 quiesce；本 PR 不增加进程锁、隔离 marker 或新的 maintenance manager。
 
 CLI 默认只执行 plan。显式 apply 要求 absolute workspace 与独立 `--backup-root`，先用 SQLite
-online backup 和完整 Markdown/quota bytes/digest 建立恢复点；backup 与 workspace 不能互相包含。
 备份完成后重新盘点；active facts 的 locator/digest/owner identity 与 blocks 必须逐项相同，变化时
 不调用 target adapter，也不写 lineage。tick/step/semantic、Wake consumed 和 generic job outcomes
 只是保留历史，不是本次 handoff 输入，因此不会把 Core 变成锁住所有 owner 的全局快照器。
@@ -371,7 +362,6 @@ ledger 都只投影、不复制第二份历史。Wake quarantine/tombstones/haza
 正式 cutover 另有一个显式 operator retirement yoyo；默认 H2 行为不变。yoyo 要求维护窗口内
 冻结的完整 inventory digest、独立 backup root 和可验证 manifest，只允许把
 `proactive_continuity_owner_unavailable`、`wake_continuity_owner_unavailable`、
-`proposal_payload_unrecoverable`、`proactive_quota_owner_unavailable` 四类已审批 block 标记为
 `operator_approved_pre_cutover_supersession`。receipt 逐项绑定 locator/reason/source digest，并在
 每次 plan 时重新验证 backup manifest 和每个归档文件；出现新 block、digest 漂移、备份丢失或
 未知类别都继续 fail-loud。旧 DB/Markdown 原路径和 bytes 不被 yoyo 删除或改写。

@@ -11,15 +11,11 @@
 current/target identity 并等待确认，只有 `--yes` 允许无人值守。
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kachofugetsu09/akashic-agent/main/scripts/install-akashic.sh | sh
-
-curl -fsSL https://raw.githubusercontent.com/kachofugetsu09/akashic-agent/main/scripts/install-akashic.sh \
-  | sh -s -- --commit <40-character-sha>
 ```
 
 Core 与 Bridge 保持同仓库、同 commit、同 release manifest，但继续运行在不同权限域。Core 不获得
 Docker socket、宿主根目录、`privileged` 或 systemd 更新权限；HostBridge 不拥有 turn、SessionDB、
-plugin generation、MCP control plane 或部署事务。外围服务仍由私有 `akashic-home-services` 仓库拥有，
+plugin generation、MCP control plane 或部署事务。外围服务由独立私有仓库拥有，
 本安装器只验证其 systemd unit、网络和端点合同，不修改外围仓库或容器。
 
 本设计不授权 Core 自更新。安装、升级、回滚和正式迁移只能由通过 SSH 登录宿主的 operator 发起。
@@ -150,12 +146,10 @@ hua-home 构建使用清华、科大 Arch package cache、清华 PyPI 和 npmmir
 │ 浏览器 ──> 192.168.0.100:2236 ──> Core WebUI │
 └─────────────────────────────────────────────┘
 
-Internet ──> Cloudflare Tunnel ──> 127.0.0.1:6323 ──> Mobile WSS
 ```
 
 WebUI 默认仍绑定 `127.0.0.1`；仅由 operator 在 `runtime.env` 显式设置
 `AKASHIC_WEB_BIND_ADDRESS=192.168.0.100` 后进入局域网，并由宿主 `DOCKER-USER` 链只放行
-`192.168.0.0/24` 到 2236。Mobile 6323 固定发布到 loopback，只允许 Cloudflare Tunnel 回源，不能因
 WebUI 的局域网需求一并暴露。
 
 同 commit 的完整 generation 摘要一致时复用；存在同名但摘要不一致、缺 manifest 或身份漂移时
@@ -202,12 +196,9 @@ error（若有）和人工命令；不能因第二个异常覆盖第一次失败
 akashic-release install [--commit SHA] [--yes]
 akashic-release doctor
 akashic-release rollback [--yes]
-akashic-release pair-mobile
 akashic-release migrate --snapshot-manifest PATH
 ```
 
-`pair-mobile` 只访问当前 release 的 loopback WebChat 管理入口，在 SSH 终端用锁定的 `qrcode`
-依赖直接绘制一次性二维码，等待已验签手机 claim，并要求 operator 输入相同的六位确认码后才批准。
 默认 pairing offer 有效期为 8 分钟；延长操作窗口不改变 secret 哈希存储、一次性消费、设备签名或人工确认。
 
 当前首版的 `migrate` 只校验预演 snapshot manifest 并输出 `plan_only` 阶段清单，明确返回
@@ -256,14 +247,11 @@ Telegram outbound 内容只记录 `content_fp`、字节数和既有 correlation�
 ### 8.2 阶段
 
 1. **空状态安装**：隔离 workspace、端口、容器名和 ingress 验证 Core、Bridge、插件、MCP、OpenCLI、
-   Feed，不接入正式 Channel、调度、域名或手机。
 2. **维护与恢复点**：停止旧 ingress 和后台写入；SQLite 使用 online backup 与 integrity check；普通
    文件在 DB 窗口前后核对 metadata/SHA256，漂移时整轮重试。
 3. **迁入候选 state**：恢复到 `/srv/data/services/akashic/state`；不复制 cache/venv；重新准备 plugin
    generation，执行 legacy skill-link adoption，核对 session/message/media/plugin-data 集合。
-4. **隔离验收**：以正式数据、非正式入口启动；禁止主动任务和外发 Channel；验证 DB、Web/Mobile API、
    Shell/File、Plugin/MCP、OpenCLI、Feed、浏览器 profile 和真实模型 turn。
-5. **正式切换**：再次证明旧端无写入，启用 Channel/调度/主动任务，切换域名与手机入口，证明只有新端
    拥有 ingress，写 cutover receipt。
 6. **观察**：观察日志、资源、MCP recovery 和 delivery；保留旧端、迁移前快照与全部 generation。
 
@@ -340,6 +328,5 @@ PR change-impact Gate、累计 stack 全量测试、本机隔离安装、hua-hom
 - 代码：每个 stacked branch 的 pre-fix backup ref；installer 使用独立 worktree/branch。
 - 软件：previous release manifest、runtime.env 备份、unit 备份、旧 image/checkout/venv。
 - 数据：维护窗口的一致性 Workspace snapshot、SQLite integrity evidence、普通文件 inventory。
-- 外部入口：切换前的域名、Channel、mobile 和 schedule owner 记录。
 
 设计文档本身不授权实施正式迁移、停止线上 Runtime、修改外围私有仓库或删除旧状态。

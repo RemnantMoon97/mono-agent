@@ -55,7 +55,6 @@ async def apply(ctx: Context, config: object) -> None:
 
 保持一个清楚的 capability owner：
 
-- Tool、Command、Channel、MCP、managed process、proactive source、background job、mobile UI 和事件分别通过对应 typed service 注册。
 - `skill_roots`、`drift_skill_roots`、`workspace_roots` 和 `dashboard_module` 是 module namespace 的静态声明；路径必须位于插件 source，workspace root 只能是插件拥有的顶层目录。
 - import 阶段不启动进程、打开端口、创建正式数据库或发送外部消息。后台任务使用 `ctx.spawn`，资源使用 `ctx.effect`，监听使用 typed event key；它们随当前 Fiber 逆序清理。
 - Skill 放在插件 source，由声明的 root 发布；不要先复制到 workspace。MCP 和 service 的 candidate readiness 必须可隔离，失败要暴露。

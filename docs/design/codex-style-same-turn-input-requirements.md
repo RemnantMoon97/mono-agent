@@ -10,13 +10,11 @@
 
 普通用户输入在 session 没有 active execution attempt 时创建新 attempt；若上一个 attempt 被中止且尚无最终 A，则自动续接同一个 logical interaction。用户不选择 `steer`、`follow-up` 或 `next prompt`。
 
-一次 logical interaction 可以按顺序经历 `U1 → stop → U2 → stop → U3 → A_final`。每次 stop 只结束 execution attempt；下一 attempt 必须看到此前 U 和所有已闭合工具事实。Mobile active 时尾部动作始终是中止，草稿保留但不能发送；中止收束后才恢复发送。Telegram、QQ 等 channel 的 `/stop` 使用相同语义。
 
 ## 2. 需求
 
 ### STI-001 普通输入自动选择 logical interaction
 
-同 session 没有 active attempt 时，普通 U 创建 attempt；最新 interaction 没有最终 A 时，新 attempt 沿用其 identity。active attempt 期间 Mobile 不接收普通发送。core 根据 durable terminal 状态选择 interaction，客户端不暴露模式选择器。
 
 ### STI-002 同一 turn 支持多个 U
 
@@ -28,7 +26,6 @@
 
 ### STI-004 最终 A 才结束 Logical Interaction
 
-interrupted 或 cancelled attempt 不关闭 logical interaction。failed attempt 保留给显式重试；Mobile 普通 U 不复用它，而是创建带 `supersedesInteractionId` 的新 interaction。只有一次 attempt 成功提交 terminal assistant 时，该回复才成为 `A_final`，interaction completed；此后的普通 U 创建新的 interaction。
 
 ### STI-005 控制面只提供精确中断
 
@@ -44,7 +41,6 @@ completed turn 在一个 SessionDB 事务中按 ordinal 追加全部 U，随后�
 
 ### STI-008 硬终止保持独立
 
-Mobile 中止动作和 `/stop` 只调用 `turn/interrupt`，把 active attempt 终结为 interrupted。它们不注入 user message、不伪装成 steer，也不自动启动下一 attempt。Mobile active 时无论草稿是否为空都只提供中止；草稿保留，中止收束后才允许发送。
 
 ### STI-009 Akasha 使用显式多输入投影
 

@@ -17,7 +17,6 @@
 - 重建、Docker 和报告都使用独立 workspace，不读写正式派生库。
 
 这次不部署正式 workspace，不迁移旧 Akasha Graph，也不保留旧 fast/slow、reinforce
-或可写检查器兼容层。桌面端和移动端重新提供面向 V2 schema 的只读 Inspector；旧配置
 和旧 sidecar 的正式切换必须作为独立数据迁移执行。
 
 ## 2. 状态所有权
@@ -49,7 +48,6 @@
 │                                                    ▼         │
 │                       plugins/akasha/MemoryPlugin adapter     │
 │                                                             │
-│  Dashboard / Mobile ── read-only ──► Akasha Inspector       │
 └────────────────────────────────┬────────────────────────────┘
                                  │ byte-identical mirror
                                  ▼
@@ -272,7 +270,6 @@ turn_dense + prior-only dot ─► 左脑 dense top 5
 “补全候选”，隐藏“扩散激活”明细，不能把没有 capture 误写成没有扩散。
 
 桌面端通过插件 Dashboard 注册三个只读端点：overview、分页检索轮次和单轮详情。
-移动端复用宿主通用 plugin UI 协议：当前 assistant 回复前显示本轮左右脑召回，
 导航页显示最近检索并按需读取详情。两端都不暴露图快照、任意 SQL、reinforce 或写入
 RPC；SQLite 连接使用 read-only URI 与 `query_only`。assistant 预览保持最多 50 字，
 Dense 与显式补全按稳定 turn ID 去重后，分别按时间从近到远显示。
@@ -311,7 +308,6 @@ python scripts/check_akasic_behavior.py
 npm run typecheck
 npm run lint
 npm run build:dashboard
-node --test tests/test_akasha_mobile_ui.mjs
 
 # strict isolated replay
 PYTHONHASHSEED=1 .venv/bin/python scripts/build_akasha_db.py \

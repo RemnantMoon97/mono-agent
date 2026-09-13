@@ -2,7 +2,6 @@
 
 > 历史迁移地图：E1～E4 是 2026-08 的分批计划，不是当前可执行 Gate。当前入口与删除依据分别见 [`docs/WORKFLOW.md`](../WORKFLOW.md) 和[测试与 Gate 清理账本](../refactor/test-gate-cleanup-ledger.md)。
 
-本文记录 Issue [#394](https://github.com/kachofugetsu09/akashic-agent/issues/394)
 这一轮 Cordis 风格插件改造的目标结构、当前实现栈、剩余迁移范围和 v2 物理删除顺序。
 它是 2026-08-16 的实施接手点，不替代
 [Cordis 插件迁移能力等价验收](cordis-plugin-capability-parity.md)中的长期能力合同。
@@ -150,26 +149,8 @@ Core 是受支持 API 的 owner，不是 Python 安全沙箱。同 UID 的恶意
 
 | 插件 | canonical repository | 工作站 checkout |
 |---|---|---|
-| Calendar | [akashic-plugins/calendar-mcp](https://github.com/akashic-plugins/calendar-mcp) | `/mnt/data/coding/akashic-plugin/calendar-mcp` |
-| Citation | [akashic-plugins/citation](https://github.com/akashic-plugins/citation) | `/mnt/data/coding/akashic-plugin/citation` |
-| Emotion | [akashic-plugins/emotion](https://github.com/akashic-plugins/emotion) | `/mnt/data/coding/akashic-plugin/emotion` |
-| Feed | [akashic-plugins/feed-mcp](https://github.com/akashic-plugins/feed-mcp) | `/mnt/data/coding/akashic-plugin/feed-mcp` |
-| Fitbit | [akashic-plugins/fitbit-mcp](https://github.com/akashic-plugins/fitbit-mcp) | `/mnt/data/coding/akashic-plugin/fitbit-mcp` |
-| GitHub Watch | [kachofugetsu09/github-watch](https://github.com/kachofugetsu09/github-watch) | `/mnt/data/coding/akashic-plugin/github-watch` |
-| Huayue Skills | [akashic-plugins/huayue-skills](https://github.com/akashic-plugins/huayue-skills) | `/mnt/data/coding/akashic-plugin/huayue-skills` |
-| Meme | [akashic-plugins/meme](https://github.com/akashic-plugins/meme) | `/mnt/data/coding/akashic-plugin/meme` |
-| Observe | [akashic-plugins/observe](https://github.com/akashic-plugins/observe) | `/mnt/data/coding/akashic-plugin/observe` |
-| Plugin Undo | [akashic-plugins/plugin_undo](https://github.com/akashic-plugins/plugin_undo) | `/mnt/data/coding/akashic-plugin/plugin_undo` |
-| Proactive Feedback | [akashic-plugins/proactive_feedback](https://github.com/akashic-plugins/proactive_feedback) | `/mnt/data/coding/akashic-plugin/proactive_feedback` |
-| Setup Helper | [akashic-plugins/setup_helper](https://github.com/akashic-plugins/setup_helper) | `/mnt/data/coding/akashic-plugin/setup_helper` |
-| Shell Restore | [akashic-plugins/shell_restore](https://github.com/akashic-plugins/shell_restore) | `/mnt/data/coding/akashic-plugin/shell_restore` |
-| Shell Safety | [akashic-plugins/shell_safety](https://github.com/akashic-plugins/shell_safety) | `/mnt/data/coding/akashic-plugin/shell_safety` |
-| Status Commands | [akashic-plugins/status_commands](https://github.com/akashic-plugins/status_commands) | `/mnt/data/coding/akashic-plugin/status_commands` |
-| Steam | [akashic-plugins/steam-mcp](https://github.com/akashic-plugins/steam-mcp) | `/mnt/data/coding/akashic-plugin/steam-mcp` |
 
 Feishu 与 QQBot 不在上述 hua-home enabled manifest 中，但它们是 PLG-016 指定的纯 v3 channel
-consumer，分别由 [akashic-plugins/feishu](https://github.com/akashic-plugins/feishu) 和
-[akashic-plugins/qqbot](https://github.com/akashic-plugins/qqbot) 拥有。本轮 Core surface 删除必须同时
 运行这两个仓库的固定 commit 合同测试。
 
 ## 5. 2026-08-16 试点盘点（历史）
@@ -194,12 +175,6 @@ fleet lock 中 20 个 external 插件与 8 个 in-tree 实现；Computer Use Lin
 
 | 插件 | v3 能力 | 证据 |
 |---|---|---|
-| Citation | prompt protocol、assistant metadata | [Citation #3](https://github.com/akashic-plugins/citation/pull/3) |
-| Meme | required `citation.protocol`、prompt/media、Skill、Dashboard | [Meme #3](https://github.com/akashic-plugins/meme/pull/3) |
-| Shell Restore | `tool.input.prepare` 串行变换 | [Shell Restore #3](https://github.com/akashic-plugins/shell_restore/pull/3) |
-| Shell Safety | `tool.execution.authorize` | [Shell Safety #2](https://github.com/akashic-plugins/shell_safety/pull/2) |
-| Tool Loop Guard | typed authorization 与 per-generation state | [Tool Loop Guard #2](https://github.com/akashic-plugins/tool_loop_guard/pull/2) |
-| Default Memory | static activation、Memory capability、result observer、Dashboard | [Core #437](https://github.com/kachofugetsu09/akashic-agent/pull/437) |
 
 ### 5.1 Core 实现栈
 
@@ -214,23 +189,6 @@ lane，不是 #425 的父链。下面只列本轮 remediation 与试点 Gate：
 
 | PR | 目的 |
 |---|---|
-| [#425](https://github.com/kachofugetsu09/akashic-agent/pull/425) | stable 批量原子组装 |
-| [#426](https://github.com/kachofugetsu09/akashic-agent/pull/426) | candidate Root、workspace 与 data 隔离 |
-| [#427](https://github.com/kachofugetsu09/akashic-agent/pull/427) | immutable topology identity 与 composition revision |
-| [#428](https://github.com/kachofugetsu09/akashic-agent/pull/428) | Validation / Health / Incident 分离 |
-| [#429](https://github.com/kachofugetsu09/akashic-agent/pull/429) | transform / observe dispatch |
-| [#430](https://github.com/kachofugetsu09/akashic-agent/pull/430) | generation-scoped data root |
-| [#431](https://github.com/kachofugetsu09/akashic-agent/pull/431) | typed Tool 六段执行链与 v2 删除标记 |
-| [#432](https://github.com/kachofugetsu09/akashic-agent/pull/432) | Shell 插件跨仓 exact-commit Gate |
-| [#433](https://github.com/kachofugetsu09/akashic-agent/pull/433) | 包级 Skill/Drift skill/Dashboard 声明 |
-| [#434](https://github.com/kachofugetsu09/akashic-agent/pull/434) | prepared context 与 Memory capability |
-| [#435](https://github.com/kachofugetsu09/akashic-agent/pull/435) | 窄 DashboardContext 与 candidate binding |
-| [#436](https://github.com/kachofugetsu09/akashic-agent/pull/436) | static projection 与 exact Root runtime |
-| [#437](https://github.com/kachofugetsu09/akashic-agent/pull/437) | Default Memory v3 迁移 |
-| [#438](https://github.com/kachofugetsu09/akashic-agent/pull/438) | 被动回复 seam 与 metadata 原子提交 |
-| [#439](https://github.com/kachofugetsu09/akashic-agent/pull/439) | Citation/Meme 组合 Gate 与完整 CI |
-| [#440](https://github.com/kachofugetsu09/akashic-agent/pull/440) | immutable Dashboard artifact 派生缓存 |
-| [#441](https://github.com/kachofugetsu09/akashic-agent/pull/441) | WebUI-only 真实 Docker E2E |
 
 真实依赖从 foundation #401 接入，并在 #431 后再次分叉，不是 #425～#441 的单链：
 
@@ -258,9 +216,6 @@ private proactive 边界以生产替代清单为准。
 | 族群 | 插件 | 迁移时需要的首要 v3 seam |
 |---|---|---|
 | lifecycle | `context_pressure` | 现有 typed lifecycle；缺 seam 时由第一个真实 consumer 建立 |
-| proactive/job/mobile | `daynight_gate`、`emotion` | timer/proactive source、generation job/LLM、mobile query；不复制旧固定方法 |
-| command/lifecycle/mobile | `plugin_undo`、`setup_helper`、`status_commands` | committed channel command catalog + typed lifecycle；一次声明后由 channel 投影 |
-| Dashboard/mobile/event | `observe`、`proactive_feedback` | committed event observer、Dashboard 和窄 mobile query capability |
 | MCP/process/proactive | `calendar-mcp`、`feed-mcp`、`fitbit-mcp`、`steam-mcp` | scoped MCP/process provider、readiness、Effect cleanup、proactive source |
 | Skill/MCP | `computer-use-linux` | 包级 Skill 与 scoped MCP provider |
 | channel | `feishu`、`qqbot` | inbound/outbound channel capability 与发送提交边界 |
@@ -274,7 +229,6 @@ private proactive 边界以生产替代清单为准。
 
 ### 6.3 GitHub Watcher
 
-当时公开 lock、`akashic-plugins` 组织和本轮可访问的 canonical source 中没有可锁定的
 GitHub Watcher。因此它不计入 29 个实现，也不能声称已经迁移。后续必须先定位 canonical
 repository、确认凭证边界、公开性与真实 installed artifact，再加入 exact-commit Gate。
 插件继续拥有自己的 GitHub client；Core 只应提供接入 loop、data root、Health/Incident 和
@@ -293,15 +247,11 @@ repository、确认凭证边界、公开性与真实 installed artifact，再加
    `PluginManager` 识别 `managed_services()` 领域对象。
 3. **Channel command catalog**：插件一次注册 canonical name、aliases、description 与对应
    lifecycle handler；Core 拥有 collision、snapshot identity 和 committed publication，candidate
-   catalog 不向 channel 暴露。Telegram/mobile/WebUI host 只消费 stable catalog。它与 agent
    ToolExecutor 的 tool catalog 是两项能力。完成后删除 `PluginManager`、`bootstrap/app.py` 与
-   `bootstrap/channels.py` 的 `telegram_bot_commands()/mobile_bot_commands()` 聚合路径。
 4. **Channel capability**：Core 提供 inbound Message 与 committed outbound 发送边界；插件
    注册 channel adapter，不把 channel 业务字段加入通用 `PluginContext`。
 5. **Timer/proactive capability**：Core 提供 timer/clock/turn enqueue seam，插件自己实现
    调度逻辑；不把 `jobs()`、`proactive_*()` 原样翻译成 v3 namespace 方法。
-6. **Mobile UI/query capability**：把移动投影建成窄 typed capability，与 Dashboard 类似；
-   不保留 `mobile_ui()/mobile_query()` 的 Manager 特判。
 7. **Generation job/LLM capability**：Core 拥有 committed trigger/interval catalog、执行期模型
    generation lease 和取消/drain；插件只实现 job handler，不取得整个 legacy `PluginContext`。
 8. **v3 generation metadata**：把 `ComposablePlugin` 暂借的 `PluginContext` 数据迁入
@@ -324,7 +274,6 @@ repository、确认凭证边界、公开性与真实 installed artifact，再加
 | E | `agent/plugins/snapshot.py`、`manager.py` 的 static-active 与 stable-health exemption | 不再存在 v2-only candidate 或 v2 static contribution |
 | F | `agent/plugins/context.py` 的 `PluginContext` | v3 generation metadata 已迁到 Core-private record，所有 v2插件已迁移 |
 | G | `agent/plugins/doctor.py` v2 declaration/class discovery | installer/doctor 只接受 `api_version=3` namespace |
-| H | `agent/plugins/base.py`、registry 与 Manager 的 v2 lifecycle/contribution/command 调用 | command/MCP/process/channel/proactive/mobile/phase 全部有 v3 consumer 与 Gate |
 | I | `RuntimeSnapshot` 中 phase/jobs/channels/MCP/managed-service 等 v2 固定字段 | snapshot 只保存 generation、CompositionRoot/topology 与派生 capability catalogs |
 | J | `docker/debug/plugin-api-v2.lock.json` 与 v2 Gate | 29 个实现加后续纳管插件都有 pure-v3 full-fleet Gate |
 
@@ -334,7 +283,6 @@ repository、确认凭证边界、公开性与真实 installed artifact，再加
 ## 8. 2026-08-16 原始实施顺序（历史）
 
 下列顺序只用于审阅最初 stacked PR，不再是当前收尾命令。当前收尾固定为同一 clean head 的
-static fleet、Mobile、WebUI、E1～E4，再由生产替代清单关闭 W6～W9。
 
 ```text
 1. 先按 parent chain review/merge #395 → #397 → #398 → #399 → #400 → #401
@@ -342,7 +290,6 @@ static fleet、Mobile、WebUI、E1～E4，再由生产替代清单关闭 W6～W9
 3. Tool lane：合入 Shell Restore/Safety/Loop Guard pure-v3 source，再 merge #432
 4. Passive lane：merge #433 → ... → #438 与 Default Memory；合入 Citation/Meme pure-v3 source
 5. Merge #439 → #440 → #441，并在 exact heads 重跑 composition 与 WebUI E2E
-6. 按 lifecycle/command → MCP/process → channel → proactive/mobile 迁移剩余 23 个
 7. 每个 seam 的最后 consumer 迁走后，提交对应 A～I 小型删除 PR
 8. 建立 pure-v3 full-fleet Gate，冷启动/热重载/晋升/回滚/停止全部通过
 9. 最后执行 J：删除 v2 lock/Gate 与 runtime 双路径，doctor 只接受 api_version=3
@@ -359,8 +306,6 @@ cache。合并前重新核对相邻 diff 与栈顶累计行为。
 - `rg 'V2_REMOVAL|api_version = 2|class .*\(Plugin\)|ToolHook|PluginContext'` 不再命中
   production compatibility owner；测试 fixture 的历史格式另行标注；
 - 运行时只装载 `api_version=3` namespace，unknown/legacy declaration fail-loud；
-- `PluginManager` 不再逐项调用 phase/command/jobs/channels/MCP/proactive/mobile 固定插件方法，
-  `telegram_bot_commands()/mobile_bot_commands()` 的 Manager/bootstrap 聚合路径已删除；
 - candidate Root 的 data/workspace/external effects 与 stable 隔离，失败/取消零残留；
 - stable Root 继续受 promotion、snapshot lease 与 generation drain 保护；
 - 29 个已跟踪实现和后续纳管的 GitHub Watcher 全部有 exact-commit 行为证据；

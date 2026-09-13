@@ -113,7 +113,6 @@ Gate 根据 Git diff 选择场景，并把报告写入 `docker/debug/reports/cha
 
 生产路径与受保护合同同时变化时，Gate 必须扩大为完整公开场景执行，不能以结构性拒绝代替验证。测试失败先归因为实现、环境或契约冲突；修改断言、跳过场景和缩减 Gate 需要独立理由与授权。
 
-普通 Pull Request 运行仓库现有 Python/Web 回归与 change-impact Gate；测试数量和测试文件集合不再由固定预算或保留清单门控，新增测试按真实可观察回归、非平凡不变量、边界和具体 bug 判断。插件候选运行手动 `Plugin v3 Candidate Gates` workflow 的 fleet completeness、Mobile 和公共 WebUI。正式发布所需的真实 workspace 演练由拥有部署输入的发布流程负责，仓库 CI 不伪造该证据。历史清理范围、保留理由、已知取舍与恢复点见[测试与 Gate 清理账本](refactor/test-gate-cleanup-ledger.md)。
 
 ## 6. Review 模式
 
@@ -133,11 +132,8 @@ Stacked PR 先确认依赖链，每张只审查自己的相邻 `base..head`；�
 
 跨仓库协议和插件报告分别固定协议 source commit/path/hash、实际 runtime commit/tree、provider `requested_ref/resolved_sha/change_source_pr_head` 和 scenario profile/hash。手工构建、Docker、隔离互操作和 Pixel/ADB 记录与远端 CI checks 分开报告，没有 check 就写未验证，不能用 PR 描述中的成功声明代替。
 
-Pixel/ADB Gate 只从干净 source commit/tree 构建，同一 Android worktree 同时只允许一个 Gate。构建完成后、首次 ADB 调用前必须再次核对 worktree clean、HEAD 和 tree 与起始值相同；任一漂移以 `failed_setup` 结束且不得读取或写入设备。安装前从 app/test APK 读取真实 application ID 与 instrumentation target，为本次 run 使用唯一的 run-specific application ID，再用 `pm list packages -u` 检查 app/test package collision。任一 collision 都必须 blocked，禁止安装、clear 或 uninstall；安装禁止 replace，签名一致和 `adb install -r` 不构成覆盖许可。只有本进程成功安装的 package 才归本进程清理。
 
-测试按声明的阶段执行，需要验证进程恢复时在阶段间显式 force-stop；instrumentation 还要核对实际执行数量、指定方法、开始/成功状态和失败标记，不能把 shell 退出码 0 或 0 test 当作通过。测试成功不等于 Gate 成功：只有 cleanup 完成后才能写唯一 `gate_result=passed`；清理失败必须返回非零、写 `gate_result=failed_cleanup` 并列出残留 package。结束后核对正式 package 状态未变，并证明临时 app/test package、ADB reverse、容器和测试 workspace 已 cleanup。涉及实时 Gateway 时，另外记录 Mobile Lab 的 core SHA、run ID 和配对材料来源；设备 package 隔离不能替代服务端 workspace 隔离证明。
 
-评审移动端或其他客户端时按 MOB-001 区分平台实现、产品体验、中立协议和核心权威状态。核心 runtime patch 缺少既有不变量、权威 owner 或客户端替代分析时停止并询问维护者。
 
 ## 7. 文档维护
 

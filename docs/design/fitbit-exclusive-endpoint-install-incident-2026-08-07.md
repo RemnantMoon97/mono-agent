@@ -114,11 +114,9 @@ stable S0（无 Fitbit） ─────────────── 普通 t
 1. 为 Core diff、插件 manifest、完整 cache、plugin-data、reload journal 和 pointers 创建可恢复备份。
 2. 回滚 `agent/plugins/manager.py` 及对应测试中的临时 Gate/admission 补丁；`tests/test_plugin_hot_reload.py` 为 138 passed，`git diff --check` 通过。
 3. 停止 worktree runtime，确认旧 supervisor/gateway 退出。
-4. 核对 GitHub canonical source `https://github.com/akashic-plugins/fitbit-mcp.git` 的 `main` 与本地 source HEAD 均为 `625cdade25341dd9fec4e8660ae13e6725f5f6c9`。
 5. 将旧 cache 移入备份，使用正式 installer owner 从 GitHub source 离线安装，`stage_candidate=False`，使 stable/latest 在启动前共同指向新 artifact。
 6. 保留 `/home/huashen/.akashic/workspace/plugin-data/fitbit-github`，安装前后目录对比无差异。
 7. 从主仓库启动 runtime。新 boot ID 为 `8d486664c11c400d99315f571dcc15b9`，Fitbit MCP 与 monitor 均由新 artifact 的 venv 启动，`6321/6322/6323/18765` 均有 listener。
-8. HTTP `/api/data`、`/api/tool/fitbit_health_snapshot`、`/api/mobile/sleep_projection` 均返回 200 且 `available=true`。
 9. 程序化 stable session `programmatic:9f1e4e6e-9828-44a7-9d7a-d4d7996aa06c` 的 `turn:3cfc4b46-8e52-408b-b093-9429dac02f13` 实际解锁并调用 `mcp_fitbit__fitbit_health_snapshot`，最终返回 `available: true`。
 
 恢复备份位于：
@@ -159,4 +157,3 @@ stable S0（无 Fitbit） ─────────────── 普通 t
 - [递归插件自验证设计](recursive-plugin-self-validation.md)
 - [持久状态所有权图](persistence-state-map.md)
 - [项目执行流程](../WORKFLOW.md)
-

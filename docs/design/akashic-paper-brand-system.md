@@ -7,9 +7,7 @@
 
 ## 1. 问题和用户意图
 
-PR #500 已经统一桌面 Chat、Dashboard 的暖纸颜色和霞鹜文楷，但生产 Mobile 仍有独立解释的颜色和组件外观。后续界面应直接复用成熟 WebUI 的消息、Markdown、工具过程与视觉变量，而不是为 Mobile 再发明一套内容语言。
 
-本阶段固定 token 合同，并让生产 Mobile 对齐共享 WebUI；不改变 Message、Turn、Session、Native Bridge 或 WebUI 发布协议。
 
 ## 2. 品牌语法
 
@@ -41,31 +39,19 @@ PR #500 已经统一桌面 Chat、Dashboard 的暖纸颜色和霞鹜文楷，但
 
 | 好的既有 CSS | Brand token | 共同消费者 |
 |---|---|---|
-| 连续页面底色 | `--ak-paper-canvas` | Desktop、Mobile、Dashboard、共享 paper stage |
 | 安静侧栏底色 | `--ak-paper-quiet` | Desktop sidebar、配对界面、Dashboard rail |
-| 最干净的编辑面 | `--ak-paper-editing` | Desktop composer、Mobile composer、配对输入面 |
-| 用户内容纸片 | `--ak-paper-sheet` | Desktop 与 Mobile 的共享用户消息、侧栏主动作 |
-| 10% 墨色细线 | `--ak-rule-subtle` | Desktop、Mobile、Dashboard 的结构分隔 |
-| 输入边界与柔和 focus | `--ak-rule-default` / `--ak-rule-focus-soft` | Desktop 与 Mobile composer |
-| 阅读字与技术字 | `--ak-type-reading` / `--ak-type-technical` | Chat、Mobile、Dashboard |
 
-`12px` 用户气泡圆角、composer 高度、移动端 safe area、抽屉宽度和动画时长仍留在组件 CSS。它们即使数值相同，也不代表换品牌时必须一起变化。原稿中的 `annotation`、纸张几何和辅助字号没有真实消费者，已从公共合同移除；trace 继续由 status token 拥有。
 
-## 4. Mobile 复用边界
 
 ```text
 共享 WebUI
 ├─ ChatMessageView / message-view.css ── 用户气泡、回答、Markdown、工具过程
 ├─ theme.css / brand tokens ──────────── 纸张、墨色、字体与规则线
-└─ Mobile adapter
    ├─ 复用上面两层
    └─ 只拥有 viewport、触摸、抽屉、Bridge、草稿和离线状态
 ```
 
 - 用户消息继续使用桌面 WebUI 已有的中性气泡，Akashic 回答直接显示正文，不添加角色标题。
-- Markdown、代码、附件和工具过程继续使用共享组件，不复制 Mobile 专用 DOM。
-- Mobile composer 保留自己的 Native 草稿、附件和 outbox 行为，只复用桌面 composer 的视觉变量与 focus 语言。
-- 流式正文继续使用共享投影，不增加逐字动画或 Mobile 专用解析器。
 - 原生能力在 Browser Lab 中只记录、实现或明确拒绝，不能用 mock success 隐藏边界。
 
 ## 5. 字体
@@ -73,8 +59,6 @@ PR #500 已经统一桌面 Chat、Dashboard 的暖纸颜色和霞鹜文楷，但
 - 阅读正文使用仓库随附的 `LXGW WenKai GB Screen` v1.522；浏览器运行时由四个 `unicode-range` WOFF2 分片组合为同一字体，正文不低于 16 px，三行以上正文行高不低于 1.4。
 - 代码、时间、运行身份和短技术标签使用 `JetBrains Mono`。
 - 最多同时出现阅读与技术两种字体；不能为单一组件增加第三种品牌字体。
-- 中文字体的权威源文件约 9.7 MiB。运行时四分片合计约 10.2 MiB，最大单片约 3.4 MiB，完整保留源字体 cmap，同时满足 Mobile WebUI 8 MiB 单文件合同。Android OTA 会在激活 generation 前下载所有文件，因此不采用普通网站常见的数百个小分片；浏览器仍可按 `unicode-range` 只请求当前文本所需分片。
-- `scripts/split-paper-font.py` 固定源文件摘要与 FontTools 版本，在原子替换运行时文件前验证完整 cmap 和单片大小。更新字体时必须更新源摘要、重新生成并通过 Mobile WebUI publication build，不能只以普通 Vite 构建作为发布证据。
 
 ## 6. 主题与兼容边界
 
@@ -87,16 +71,12 @@ Theme Catalog → brand tokens → product components
 
 新组件不得增加 `--md-sys-*` 直接依赖。迁移完成前不删除旧 namespace，避免破坏 Dashboard、插件和第三方公开控件。
 
-`paper-brand.test.mjs` 还会检查每个公开 token 至少有一个仓库内产品消费者，并检查 Desktop 与 Mobile 的共享 Chat 角色映射完全相同，防止合同再次变成无人使用的变量清单。
 
 ## 7. 验收
 
-1. 真实生产 `MobileNativeApp` 在 Browser Lab 使用共享消息组件，而不是 Lab 自己复制 DOM。
 2. conversation、stream、long、reconnecting 四个 fixture 均可操作。
 3. 320 px 不发生横向溢出；200% 缩放仍可到达输入、发送和恢复动作。
 4. light、dark、focus、selected、error、stopped 和 reduced-motion 均保持文字或图标信号。
 5. WCAG 2 A/AA 自动检查通过；字体、色值和截图只在固定 Chromium 环境内比较。
 
 ## 8. 回滚
-
-回滚 Mobile 对齐 CSS 和 `brand-tokens.css` 引用即可回到 PR #500 原视觉。状态、协议、数据库、原生客户端和正式 workspace 没有迁移。

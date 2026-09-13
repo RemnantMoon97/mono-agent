@@ -547,8 +547,6 @@ formal；huayue-skills 无法形成无重复/无空窗的 owner 切换；或正�
 ## 13. 2026-08-31 验收记录
 
 - 最终候选为 `9d23dbbabeb69b3360a9b9c95c4a46d8b01ab1ad`；Computer image 固定为
-  `ghcr.io/kachofugetsu09/akashic-computer@sha256:6fd3c605380a3daef5ddebb34f2905ee992d2b4e1490fbfb78dcce9f06a3dadb`。
-  [GitHub Actions image build 33365143243](https://github.com/kachofugetsu09/akashic-agent/actions/runs/33365143243)
   通过，运行容器的 image ID 与 revision 已和该产物对账。
 - 隔离 compose 部署只固定启动 Core 与 Workload Controller；默认 `computer` generation 自动创建正式
   Workload。真实 disable、uninstall、enable 和 Core restart/adopt 路径均通过；容器、Tool、Skill 与 UI
@@ -572,5 +570,4 @@ formal；huayue-skills 无法形成无重复/无空窗的 owner 切换；或正�
   TypeScript 类型检查和生产构建全部通过。全量 Change Gate 通过，报告为
   `docker/debug/reports/change-gate/20260831-150822-1edeb96d`，27 个公开合同场景无失败或残留 Docker 资源。
 - `huayue-skills` 的旧 OpenCLI owner 已在独立
-  [PR #6](https://github.com/akashic-plugins/huayue-skills/pull/6) 删除；该 PR 与本 PR 需要按“先让 Computer
   artifact 可用、再撤旧 owner”的顺序合并，不在本任务中越权合并。

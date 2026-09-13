@@ -6,6 +6,5 @@ const capability = await tab.capabilities.get("pageAssets");
 
 interface PageAssetsTabCapability {
   bundle(options: { assetIds?: Array<string>; inventoryId: string; kinds?: Array<"font" | "image" | "stylesheet" | "video"> }): Promise<{ assets: Array<{ contentType: null | string; id: string; kind: "font" | "image" | "stylesheet" | "video"; name: string; path: string; url: string }>; directoryPath: string; failures: Array<{ contentType: null | string; id: string; name: string; reason: string; url: string }>; manifestPath: string; summary: { downloadedCount: number; elapsedMs: number; failedCount: number; requestedCount: number } }>; // Export file assets from a prior inventory into a local artifact directory.
-  list(): Promise<{ assets: Array<{ id: string; kind: "script" | "font" | "image" | "stylesheet" | "video" | "other"; name: string; sources: Array<{ kind: "attribute" | "computedStyle" | "resource"; nodeId?: number; property?: string }>; url: string }>; id: string; inlineSvgs: Array<{ id: string; markup: string; name: string }>; pageUrl: null | string; summary: { byKind: Partial<Record<"script" | "font" | "image" | "stylesheet" | "video" | "other", number>>; inlineSvgCount: number; totalCount: number } }>; // Inventory file assets and inline SVGs observed in the current page state.
 }
 ```

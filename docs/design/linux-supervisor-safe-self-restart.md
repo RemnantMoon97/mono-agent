@@ -79,7 +79,6 @@ run_supervisor()
                     ├─ 再做一次启动迁移检查
                     ├─ Core / plugins / MCP
                     ├─ managed services
-                    ├─ channels / web / mobile / proactive
                     └─ 写 runtime-ready.json
 ```
 
@@ -107,7 +106,6 @@ run_supervisor()
 
 ### 4.3 固定 15 秒把完整启动误当成单一步骤
 
-当前 `AKASHIC_READINESS_TIMEOUT_S` 默认 15 秒，从 child 创建开始覆盖完整 Gateway 初始化。插件加载、MCP、managed services、channels、Web/Mobile 和主动流程均可能在 ready 前串行执行，各自还可能有局部超时。2026-08-01 调查期间的一次已部署容器现场观测，从容器开始到 readiness 约 8.25 秒，从 settings 开始监听到 readiness 约 6.2 秒；该记录没有作为当前分支的可复现 benchmark，只能说明固定 15 秒可能余量有限。
 
 改造不能简单把 15 改成更大的拍脑袋数字。Gateway 应发送阶段事件，Supervisor 使用一个不可续期的总体硬 deadline，并在失败时报告最后阶段与耗时。默认值由改造前后的同机冷启动/热启动 profile 确定，而不是由阶段事件不断续命。
 

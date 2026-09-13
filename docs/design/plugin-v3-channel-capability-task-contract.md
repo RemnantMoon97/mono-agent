@@ -534,7 +534,6 @@ candidate、factory 调用与 `start()` 之前的 credential resolution/client c
    行、cache 或 index 变化，已有 Session metadata/cache 也保持原值。并发 move 最终只能留下一个权威 recipient；历史 metadata
    不自动删除，因为普通 channel admission 无权减少既有 Session 状态。
 9. 附件不属于 C14a～C14d，由独立 C23 persistence 合同拥有。C23 可以先加入 opaque DTO 与窄 Protocol，但在
-   artifact intent/ready row、Session binding transaction、Host per-binding read lease、Mobile idempotency mapping 与
    backup/restore Gate 全部闭合前，production factory context 的 attachment ports 必须保持 `None`，Channel wire 与
    MessagePush 继续 text-only。首批 Feishu/QQBot v3 adapter 遇到附件输入返回 `REJECTED`，且不读取 workspace path、
    不复制 uploads、不删除旧文件。现有 v2 attachment 行为保留到 C23 与专门迁移批次完成。
@@ -551,7 +550,6 @@ provider network。promotion 本身只切 endpoint/registration，不发送业�
    是 discovery、Host 和 inspection 的唯一公开入口；candidate 不投影 live Host。recording validation 也只能由
    Core 显式 Gate 取得 candidate registry，不能成为公开 channel。
 2. promotion 先 pause old/new admission，等待 old Host in-flight owner 与 stable lease 收束，seal candidate，再建立
-   closed provisional transaction；其间所有 `current_snapshot`、discovery、Mobile/WebUI/inspection 仍读取 old stable。
    `PluginManager` 是 services、command catalog 与 ChannelHost 的唯一 publication coordinator：先由 SnapshotStore 建立并
    commit closed provisional，再依次驱动各 participant；全部成功后只由 Manager 一次 finalize。ChannelHost 不得直接访问
    SnapshotStore、另开 provisional transaction 或提前发布自己的 current binding。现有先 `_switch_plugin_endpoints()`、后
@@ -710,12 +708,10 @@ old exact-token bind → old start/ready → old admission open`；任何恢复�
 读取原始 credential 或构造 SDK/HTTP client。修改了 v2 channel plugin 的 candidate 在 contribution compile 前
 fail-loud，要求先迁到 v3 blueprint；其他 candidate 只复用已 committed v2 generation 的冻结 contribution。
 最后一个 external v2 channel 迁走并通过 E3 后，只能删除 Feishu/QQBot 的 `Plugin.channels()` consumer；
-Core Telegram/QQ/Web/Mobile 仍是旧 Channel/MessageBus adapter。只有 C14c 将这些 Core adapter 逐一接入
 `CommittedChannelCatalog`、并由 zero-consumer Gate 证明旧 bootstrap/Bus 路径为空后，Host 才只消费 committed registry，删除
 `Plugin.channels()`、
 `PluginContributions.channels`、Manager mutable `_channels` 与 bootstrap `plugin_channels` 参数。
 
-Core 内建 Telegram/QQ/Web/mobile adapter 由 `CoreChannelDefinition` 投影；Host 的唯一输入是
 `CommittedChannelCatalog(core_definitions + v3 ChannelRegistrySnapshot + migration-only v2 adapters)`。Core name 优先保留，
 v3/v2 collision fail-loud，不允许覆盖。迁移期 v2 callback 用薄 adapter 转成 `ChannelDeliveryReceipt`：正常返回只能在
 provider 调用已明确成功时标 `DELIVERED`；旧 `FAILED` 只有 adapter 能证明 provider 尚未被调用/远端未接收时映射
@@ -725,7 +721,6 @@ provider 调用已明确成功时标 `DELIVERED`；旧 `FAILED` 只有 adapter �
 
 - ChannelDefinition 不注册 command、不拥有 handler、不修改 `CommandRegistry`；命令只由 C11 `COMMANDS` 注册。
 - channel 只能取得按 provider 类型明确投影的 committed 只读 catalog；Feishu/QQBot 默认不消费 bot command catalog。
-- `telegram_bot_commands/mobile_bot_commands` 的删除依据是最后一个 v2 command consumer，而不是最后一个 v2 channel。
 - C11 external command refresh 与 C14 channel swap 可共享 publication transaction，但两套 catalog/rollback owner
   保持独立，不能把 Proactive quiescer 当 channel drain。
 
@@ -763,7 +758,6 @@ provider 调用已明确成功时标 `DELIVERED`；旧 `FAILED` 只有 adapter �
 - attempts：确定性 `REJECTED` 后显式新 attempt 保留 logical id、生成新 delivery id 并递增 sequence；`UNKNOWN`
   后 attempt count 不变；
 - error terminal：真实 `agent/looping/core.py` 异常分支等待 Receipt，`UNKNOWN` 不得被 Turn/Tool 标成发送成功；
-- entry matrix：`passive_turn`、`after_turn`、turn orchestrator/outbound、passive worker、Telegram/QQ/Web/Mobile adapter
   的 normal/error/cancel/proactive/control 输出均产生 awaited Receipt；删除任一路旧 callback 会使 Gate 失败；
 - push result：direct MessagePush 的 ToolResult 保留 delivery id、三态 status 与 `retryable=false`，相同 id 的
   logical attempt count 始终为 1；
@@ -865,7 +859,6 @@ Core 真实入口包括 `agent/plugins/manager.py`、`agent/plugins/snapshot.py`
 `infra/channels/contract.py`、`infra/channels/delivery.py`、`agent/looping/core.py`、`agent/turns/outbound.py` 与
 `bootstrap/passive_worker.py`；还必须迁移 `agent/core/passive_turn.py`、`agent/lifecycle/phases/after_turn.py`、
 `agent/turns/orchestrator.py` 的 normal/error/cancel/proactive outbound，以及
-`infra/channels/telegram_channel.py`、`qq_channel.py`、`web_chat_channel.py`、`infra/mobile_realtime/channel.py` 的
 Core adapter。zero-consumer scan 未覆盖这些入口前不得删除旧 channel/MessagePush callback。
 
 V2 删除 inventory 同时覆盖 `RuntimeSnapshot.channels`、Host `_plugin_channels/ChannelSwap`、app endpoint switcher、

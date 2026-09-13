@@ -46,7 +46,6 @@ Core 环境和生命周期，不用于隔离用户数据。Core 不挂 Docker So
 - 本机隔离副本：`/mnt/data/akashic-container-rehearsal-20260810`；
 - hua-home 隔离根：`/srv/data/experiments/akashic-premigration-20260810`；
 - 实验容器、网络、端口、systemd transient unit；
-- WebUI-only 候选配置；Telegram、QQ、mobile、Feishu、proactive 和正式 schedule 均不启动；
 - 从正式 Workspace 在线一致性复制的数据副本，绝不反向合并。
 
 快照工具会：
@@ -150,7 +149,6 @@ HEAD 创建修复 worktree，并把 `origin` 指向私有 GitHub；当前运行�
 本节记录的是预演事实，不表示外围实现由 Core 仓库拥有。预演后已完成 owner 对账：RSSHub、Redis、
 Browserless、real-browser 与持久 OpenCLI Chromium 的 canonical source、image pins、Compose、systemd 和
 release manifest 已迁到独立私有仓库
-[`kachofugetsu09/akashic-home-services`](https://github.com/kachofugetsu09/akashic-home-services)。Core 仓库只
 消费外部网络和 service unit 合同，不再构建、校验或重启这些容器。
 
 ### 4.1 OpenCLI 浏览器身份
@@ -217,7 +215,6 @@ Core 不自行 pull、build 或替换正在运行的镜像。Agent 若发现自�
 - 确认私有 GitHub remote 和 hua-home SSH/GitHub 凭据；正式 Agent 的 worktree 必须能 push 分支/开 PR。
 - 验证全局备份真实覆盖正式 Workspace、plugin-data、config、plugin manifest、浏览器 profile 和 release
   manifest，并做一次抽样恢复。
-- 在最终维护窗口停止旧正式写入、创建一致性恢复点、恢复到 hua-home、逐项验收后再切域名/手机入口。
 
 ## 7. 本次预演清理
 

@@ -10,7 +10,6 @@ authors:
 version: "v0.1.1"
 date-released: 2026-06-14
 doi: ""
-repository-code: "https://github.com/kachofugetsu09/akashic-agent"
 license: "MIT"
 keywords:
   - "AI agent"
@@ -28,4 +27,3 @@ preferred-citation:
   version: "v0.1.1"
   year: 2026
   publisher: "GitHub"
-  url: "https://github.com/kachofugetsu09/akashic-agent"

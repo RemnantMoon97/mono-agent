@@ -2,7 +2,6 @@
 
 - 状态：superseded by pure-V3 direct publication
 - 日期：2026-08-17
-- 目标分支：`codex/plugin-v3-mobile-ui-query`
 - 恢复点：`backup/observe-events-pre-20260817`
 - 上游：[插件 Transform 与 Observe 事件任务合同](plugin-transform-observe-task-contract.md)
 - 关联：[Turn committed typed event 合同](plugin-turn-committed-event-task-contract.md)

@@ -1,5 +1,4 @@
 # Tab Capability: cdp
-Raw Chrome DevTools Protocol access in browser for development use. Prefer higher-level Browser Use APIs. Navigate a fresh tab to its intended HTTP or HTTPS page before the first CDP command. Raw CDP access is scoped to the tab's current web origin. To observe an action, call `readEvents()` to capture `cursor`, perform the action, then read from that cursor with `afterSequence`. Continue from each returned cursor while `hasMore` is true; `truncated` means older events were evicted. Reuse the same filters while paging. Discover child target selectors from `Target.attachedToTarget` events. If you directly modify page content or browser state through CDP, outside ordinary navigation or UI interaction, and leave that change in place, tell the user what changed in the final response.
 
 ```ts
 const capability = await tab.capabilities.get("cdp");

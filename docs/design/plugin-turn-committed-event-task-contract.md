@@ -2,7 +2,6 @@
 
 - 状态：accepted / implemented
 - 日期：2026-08-17
-- 目标分支：`codex/plugin-v3-mobile-ui-query`
 - 恢复点：`backup/c02-turn-event-pre-20260817`
 - 上游：[0036](../decisions/0036-plugin-composition-keeps-promotion-owner.md)、[插件事件与同步执行能力合同](plugin-event-executor-task-contract.md)
 

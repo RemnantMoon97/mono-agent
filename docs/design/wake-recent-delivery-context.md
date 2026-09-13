@@ -6,7 +6,6 @@
 
 ## 1. 问题和用户意图
 
-Wake 当前只向模型提供目标 session 的最近普通对话，并明确排除历史主动消息。真实数据中，Telegram 已经发送的 GPT-5.6 文件删除消息，之后又由 Mobile session 以另一个 Feed event 再次发送；Kimi K3 的多个不同测评也在短时间内重复占用主动消息。
 
 用户希望模型继续结合长期偏好自主判断。额度重置等反复发生但具有实际价值的消息仍可发送，Kimi 测评等边际信息较低的内容则由模型结合最近发送记录判断。本次不增加 URL、主题、冷却时间或重要性硬规则。
 
@@ -74,4 +73,3 @@ workspace 内跨 session 的主动消息 ──►【截至当前时间已经发
 3. 单元测试证明偏好探针每轮最多执行一次只读查询，Akasha 只返回超过原生阈值的 Dense 证据，其他引擎使用自身原生强相关阈值。
 4. 同一冻结 `sessions.db`、`MEMORY.md`、Akasha 和 Wake reservoir 在 Docker 中回放；base 与 candidate 的已声明差异是新增主动消息区块与单次偏好探针。
 5. GPT-5.6 重复消息、Kimi K3 连续测评和 Tibo 额度重置分别记录模型的 `scratchpad`、偏好证据、`share/skip`、最终消息与 capture outbox，不把某个主题硬编码成固定结果。
-6. 正式 workspace、正式 Mobile gateway 和正式 server 在验证前后保持不变。

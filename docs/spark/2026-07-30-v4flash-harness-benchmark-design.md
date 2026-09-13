@@ -232,7 +232,6 @@ destroy_trial(trial_id, authorization)
 - logs/artifacts volume；
 - 独立 control socket 或 loopback port；
 - 独立网络 namespace；
-- 独立 CPU、memory、PID、file descriptor 和磁盘 quota。
 
 不得挂载：
 

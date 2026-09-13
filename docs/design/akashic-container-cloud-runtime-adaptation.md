@@ -5,7 +5,6 @@
 - 决策：[0032 Host Bridge 保留宿主等价执行能力](../decisions/0032-host-bridge-preserves-host-equivalent-execution.md)
 - 实验合同：[容器适配非迁移实验合同](akashic-container-host-bridge-experiment-contract.md)
 - 范围：让 Akashic Core 在 hua-home 或具有完整 Linux 主机权限的云 VM 中以固定容器运行，同时保持当前开发机的原生运行方式和 Agent 的宿主操作能力
-- 非目标：本设计不批准迁移正式 Workspace、切换移动端身份、发布公网入口或让 Agent 自行部署新 Runtime
 
 ## 1. 用户意图
 
@@ -82,7 +81,6 @@ GitHub release
 镜像可以包含 LocalBackend 源码以保持同源测试，但运行时不能通过配置启用它。
 
 外围容器的 canonical source、image pins、Compose、systemd unit 和 release manifest 属于独立私有仓库
-[`kachofugetsu09/akashic-home-services`](https://github.com/kachofugetsu09/akashic-home-services)。本仓库只保留
 外部 `akashic-services` 网络和 `akashic-home-services.service` 的消费合同；Core release 不构建、校验或
 重启外围容器。
 
@@ -223,7 +221,6 @@ workspace lock和boot job空集等真实证据升级容器重启。systemd负责
   不迁入正式运行目录。
 - cache、MCP venv和skill symlink从canonical source与manifest重建。重建skill链接前必须检查同名
   普通文件/目录冲突。
-- OAuth token先原样迁移并真实只读验证；供应商拒绝时再授权。移动端使用新server identity并重新
   配对一次。hua-home Chromium使用新持久profile人工登录一次。
 
 ## 10. 构建、部署与迁移
@@ -264,7 +261,6 @@ mise run deploy <release>
 ```
 
 迁移采用单写者：旧工作站停止新写入并取得一致性备份，hua-home恢复并完整验收后才切换域名与
-手机入口。旧工作站保留为恢复源。现有全局备份继续作为备份owner，正式迁移前必须验证覆盖范围、
 最近成功时间和抽样恢复；当前实验不复制正式Workspace。
 
 ## 11. 分阶段实施

@@ -16,13 +16,10 @@ Codex `2b5bdcf67547860f2e5c5a605009a70026796b2b` 的普通 user admission 会先
 
 普通输入不暴露 steer/follow-up 选择。core 在没有 active attempt 时创建；active 时 `turn/start` 明确返回 busy，唯一可用动作是精确中断。中断 terminal 后的下一条 U 沿 durable predecessor 创建新 attempt。最终回复候选必须先 seal input source，成功后才提交 completed interaction。
 
-Mobile 输入区在 active 时只显示 hard interrupt，草稿保留但不能发送；各 channel `/stop` 使用相同 hard interrupt。控制协议不再提供 `turn/steer`。Akasha 对 completed turn 聚合全部有序 U 和唯一 final A，不再用相邻角色推断新格式。
 
 ## 2026-08-06 勘误
 
-维护者以真实 Mobile 场景重新确认后，以上 active-with-draft steer 交互不再成立。当前接受语义如下：
 
-- Mobile active 时无论是否存在草稿，尾部动作都只能是中止；草稿保留但不能发送。
 - hard interrupt 只终结当前 execution attempt，不终结 logical interaction。
 - 中止收束后发送的下一条 U 创建新 attempt，沿用同一 interaction identity，并重放此前全部 U 和已经闭合的工具调用/结果。
 - `U1 → stop → U2 → stop → U3 → A_final` 是一个 completed logical interaction、三个 execution attempts；只有 `A_final` 关闭 interaction。
@@ -32,11 +29,9 @@ Mobile 输入区在 active 时只显示 hard interrupt，草稿保留但不能�
 
 ## 理由
 
-这个模型直接匹配 Mobile 操作：执行中只有中止，终止后发送就是补充尚未完成的任务。attempt identity 和 terminal fencing 避免迟到输入串到错误执行；闭合工具组压缩控制模型热上下文，同时让 durable ledger 保持可审计。
 
 ## 影响
 
-- 正面影响：连环中止后补充要求仍保留同一 interaction、完整工具事实和同一最终回答；Mobile 没有 send/stop 模式选择。
 - 兼容性：`turn/start` active 行为、移除 `turn/steer`、completed transcript、history budget 和 Akasha projection 发生 breaking 变化。
 - 数据和迁移：不改旧正文；新消息在 extra 中携带显式 turn 归属。Akasha builder 对旧数据保留 legacy pair。
 - 失败与回滚：输入先写 turn checkpoint 再进入内存；代码可回滚，已追加 message 不删除。
@@ -46,7 +41,6 @@ Mobile 输入区在 active 时只显示 hard interrupt，草稿保留但不能�
 - [x] 两次中止产生三个 attempt ID，但沿用同一 interaction ID，只有一个 terminal A。
 - [x] SessionDB 和 Akasha 都把全部 U 归入同一 completed turn。
 - [x] `/stop` 仍只产生 interrupted terminal，不注入 user input。
-- [x] Mobile active 时只显示中止；草稿不能把动作切换回发送。
 - [x] 同一 interaction 的前驱工具组可进入临时 compaction，摘要锚定全部 U。
 - [x] Session compaction、Markdown consolidation 与 proactive 使用一致的逻辑历史单元。
 

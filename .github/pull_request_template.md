@@ -8,7 +8,6 @@
 
 - `change_type`：`fix | feature | refactor | migration | docs`
 - `semantic_delta`：`none | compatible | breaking`
-- `capability_owner`：`core | protocol | mobile | plugin | mixed | not_applicable`
 - `consumer_scope`：
 - `runtime_patch`：`none | required`
 - `runtime_patch_reason`：
@@ -36,7 +35,6 @@
 - [ ] `python docker/debug/gate.py run --base origin/main` 已运行。
 - `sourceDigest`：
 - `planDigest`：
-- 真实设备证据（设备/API、debug application ID、源码/APK 身份；不适用时说明）：
 - 未运行项与原因：
 
 ## 正交性与概念完整性

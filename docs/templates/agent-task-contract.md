@@ -29,7 +29,6 @@
 ```yaml
 change_type: fix|feature|refactor|migration|docs
 semantic_delta: none|compatible|breaking
-capability_owner: core|protocol|mobile|plugin|mixed|not_applicable
 consumer_scope: []
 runtime_patch: none|required
 runtime_patch_reason: ""

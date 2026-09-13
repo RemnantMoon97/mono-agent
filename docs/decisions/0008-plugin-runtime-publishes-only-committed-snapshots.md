@@ -75,6 +75,5 @@ fail-loud。
 
 ## 2026-08-01 紧急勘误：Turn 内卸载不能同步等待自身 lease
 
-`plugin-uninstall` 曾在 mobile turn 的 Shell 中同步调用 `disable-and-drain`。该 turn 已持有旧 snapshot lease，Control 请求发布禁用快照后又等待这个 lease 归零，而 turn 只有在 Shell 返回后才释放 lease，形成环形等待。外层 Shell 超时取消请求后，插件已从 active generation 表移除；重复请求因此提前返回，尚未证明旧 scope 已关闭。
 
 PLG-012 补充本决定：turn 内卸载先返回 runtime-owned operation，真实 drain 和 cache 清理由后台 operation 在旧 lease 释放后完成。Manager 保留每个 plugin 的 draining generation；请求取消后重试必须继续等待同一旧代，不能把 `active is None` 当成 drained。公开 `plugin_uninstall_drain_finality` Gate 固定复现这条事故顺序。

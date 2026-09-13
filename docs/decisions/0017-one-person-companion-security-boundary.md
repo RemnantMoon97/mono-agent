@@ -7,7 +7,6 @@
 
 ## 背景
 
-Akashic 服务一个人。Telegram、QQ、Mobile、Web Chat、设备和 session 是同一位用户与同一个 Agent 相遇的渠道，不构成多租户权限边界。此前安全扫描把认证、Origin、per-channel ACL、peer trust 和 device isolation 混入待办，既不符合产品模型，也会割裂全局记忆和跨渠道陪伴。既有 Mobile QR pairing、控制面握手、查询授权、设备撤销和实时协议仍然有效；本决定不削弱这些控制面机制。
 
 ## 决定
 

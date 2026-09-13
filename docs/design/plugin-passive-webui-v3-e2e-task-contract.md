@@ -45,7 +45,6 @@ installed stable artifacts ──► supervised Gateway ──► WebUI-only cha
 2. 隔离 `/app/plugins` 只保留 Web Shell 导入所需的 `default_memory` bootstrap package，
    配置关闭 Memory，因此 active runtime capability 列表只能由两个目标 v3 插件贡献；
    这不改变 Core 源码。
-3. 配置只启用 `[channels.chat]`；Telegram、QQ、mobile realtime 与 proactive 均关闭。
 4. WebUI `/api/shell/state` 与 `/api/chat/health` ready 后，客户端通过 `/ws` 创建 session，
    发送一条用户消息，并等待同 session 的 `message.final`。
 5. model-gate 返回 `答复正文\n§cited:[mem_1]§ <meme:shy>`。模型请求中的 Citation

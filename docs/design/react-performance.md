@@ -60,7 +60,6 @@ HTTP 客户端由 `DriverConnection.close` 归还。`aclose()` 等待关闭完�
 
 脚本位于 [`scripts/react-performance/`](../../scripts/react-performance/)，复用现有 application fixture，调用真实 ChannelInput、Source、Conversation、ReAct、Tools、Models 调用账和 Delivery。外部边界只有本地 SSE provider、两次实际文件工具写入和 fixture sender。可选 `--materials` 载入真实 Akasha/Markdown，embedding 由固定二维 fixture 提供。
 
-测量起点为 ChannelInput 入口，终点为 sender 入口。分别记录输入/输出/工具结果提交、provider 进出、工具进出、HTTP 收到完整请求、CPU 时间和实际消息解码次数。启动追赶不计入；线程任务有明确的完成屏障，避免把尚未完成的后台读取当成稳定状态。计时不包括手机/Web 网络上传，也不包括 sender 入口之后的外部送达。
 
 每次运行只有一个 Session、三轮模型响应、两次实际工具效果和一次发送；脚本检查实际 Message 顺序与效果数量。历史交替包含 512 字符 Input/Output，历史 Output 有对应成功模型调用账。全部历史不压缩，容量上限仅在一次性 fixture 放大，用于观察最坏的大请求成本。每份约 11.37 MB 的 20,000 条历史请求都真实经过 HTTP 编码、发送和 SSE 接收。
 

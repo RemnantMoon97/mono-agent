@@ -42,7 +42,6 @@ stable RuntimeSnapshot lease
   正确归组，v2 composition 为 null；
 - 多次 Incident 超过查询详情上限时累计数仍准确、详情有界；
 - plugin unload/terminate 不留下 inspection 自有 lease 或状态；
-- runtime inspection、composition kernel、mobile protocol 定向回归，Basedpyright error-level、compileall、
   `git diff --check`。
 
 任何查询改变 Root/Health、暴露 candidate snapshot、把 child 归给错误插件、泄漏无界 Incident，或让 legacy

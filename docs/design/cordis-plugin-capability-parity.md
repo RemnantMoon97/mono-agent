@@ -7,7 +7,6 @@
 - 对照实现：`deepseek-harness@47f943859bef60e4160492346772ded9b24f765a`
 - 理论来源：`cordiverse/paper@948a07b369c62adb3b12e102458be5c18dfb69b9`
 - 关联条款：OBJ-003、GOV-001～GOV-005、PLG-001～PLG-013、TST-001～TST-007、STA-001～STA-003、CAP-001～CAP-002、ERR-001
-- 关联设计：[插件递归自验证运行时设计](recursive-plugin-self-validation.md)、[持久化状态地图](persistence-state-map.md)、[移动端与跨仓库语义 Gate](mobile-cross-repository-semantic-gate.md)
 
 ## 1. 结论与范围
 
@@ -269,7 +268,6 @@ parity-run/<run-id>/
 - Prompt sections、context providers 和排序。
 - events、dispatch mode、listeners 和注册顺序。
 - lifecycle、phase、slot、requires、produces、jobs、sources、channels 和 managed services。
-- desktop/mobile UI slots、assets、RPC schema、navigation 和 version。
 
 ### 6.3 `turn.jsonl`
 
@@ -294,7 +292,6 @@ parity-run/<run-id>/
 
 ### 6.7 `ui/`
 
-记录 plugin roster、RPC DTO、desktop/mobile 浏览器 snapshot、交互结果和 render failure。UI package load 成功不等于组件成功渲染；render error 必须进入 verdict。
 
 ## 7. 持久状态与权限
 
@@ -308,7 +305,6 @@ parity-run/<run-id>/
 | `plugin-data/` | active plugin 按自己的 schema 增加或更新 | 插件自行定义 | 普通卸载不得删除；永久删除需独立用户操作 | plugin repository；目录快照、schema、restore smoke |
 | observe/emotion/proactive-feedback DB | Turn 或领域事件增加，状态机更新 | retention/terminal 仅按既有合同 | 没有批准协议时不得自动减少 | 各插件 owner；完整 rows、queue/event receipt |
 | proactive/Wake/Drift DB | tick、run、reservoir、ack、cursor 和 journal 增加或更新 | consume、ack、terminal | 只按领域事务与已批准 retention | runtime owner；dedupe、cursor、pending ack、restart smoke |
-| schedules、quota、plugin manifest/pointers | 既有管理动作增加或更新当前值 | disabled、superseded pointer | 只按 cancel/uninstall/GC 合同 | 对应 owner；journal、manifest、pointer、recovery |
 | meme、Skill 和 shell 管理文件 | 用户或插件工具创建、改写或移动目标 | manifest/category 状态 | 只按用户显式工具意图 | 文件 owner；复制目录、content hash、restore path |
 | 外部消息和远程 API | 只在领域提交点发生 | failed/unknown 是终态，不等于回滚 | 已提交效果通常不能物理撤销 | channel/provider；recording sink、delivery receipt、补偿说明 |
 | candidate 与差分产物 | 每次隔离 run 新建 | verdict terminal 后不再参与 admission | 仅由 run owner 在证据发布或保留期确认后清理 | parity runner；manifest、cleanup report、previous restore |
@@ -332,10 +328,8 @@ parity-run/<run-id>/
 |---|---|---|
 | Akasha | memory engine、recall/context、after-reasoning feedback、Inspector、rebuild | TurnCommitted 后的 sidecar logical state、recall lanes、citation IDs、source fence、failure recovery |
 | default_memory inactive | 已安装但不属于 active engine | active graph 中没有 handler、Skill、UI、trace 或写入；cold-enable 环境另测完整能力 |
-| observe | Turn/Proactive/Retrieval/Memory 事件、global error、writer/retention、desktop/mobile UI | event identity、queue/drop count、DB rows、watermark、retention rollback、hook disposal |
 | plugin_undo | `/undo`、SessionDB 与 memory rollback | dry-run、目标选择、session delete、memory cleanup、部分失败的显式错误；只对复制 DB 运行 |
 | setup_helper | `/chatid`、`/myid` short-circuit | 不启动模型、不写持久状态、返回当前渠道身份和配置指引 |
-| status_commands | memory/kvcache command 与 mobile projection | 只读查询、不创建缺失 session、command 与 mobile DTO 语义一致、DB bytes 不变 |
 | huayue-skills | 8 个外部 Skill | frontmatter/body/resource digest、触发条件、command intent、sink receipt、未授权外部效果为零 |
 | meme-manage | meme catalog 管理 Skill | manifest、图片目录、原子写入、失败恢复和 Dashboard 更新 |
 | emotion Drift skill | feedback preference context | pending/context 增改、LLM fixture、cursor/journal、失败不丢 pending |
@@ -370,7 +364,6 @@ parity-run/<run-id>/
 | MCP/managed service | Service Definition / Provider / Consumer + readiness |
 | job/background task | `ctx.jobs` 或 plugin fiber-owned task |
 | generation/snapshot | Akashic rollout owner 保留；Cordis fiber 作为一代的资源 scope |
-| dashboard/mobile UI | versioned client slot + RPC DTO + render receipt |
 | plugin-data | 领域 repository service；不交给通用 effect 回滚 |
 | proactive/scheduler | 独立 Message/Turn producer，复用 Agent seam，不复制被动链路的固定 Prompt/Tool 组合 |
 
@@ -418,7 +411,6 @@ DeepSeek Harness 的 `tools/pre-execute` 当前只表达 allow/deny/ask，不拥
 | G3 · Composition | citation/meme、shell、feedback/emotion、Wake 等组合顺序和结果通过 |
 | G4 · Runtime | 真实 Loader 启动完整装配，比较完整 request、session log、state 和用户输出 |
 | G5 · Recovery | 每个持久提交、service switch、delivery 与 disposal 崩溃点都能恢复 previous 或显式 fail-loud |
-| G6 · Model/UI | 真实模型领域 smoke、desktop/mobile render 与 RPC DTO 通过 |
 | G7 · Shadow | 复制生产状态、禁止真实发送的长时运行没有写集、资源、ACK、queue 或行为漂移 |
 
 所有 required Gate 通过后，才允许沿现有 parent Turn rollout 协议发布候选。任一 required Gate 失败时，stable 保持旧实现；不得修改 normalizer、oracle 或 fixture 来隐藏差异。
@@ -446,7 +438,6 @@ Mutant 因依赖缺失、fixture 失败或测试超时而未运行，不计为 k
 ### 13.1 默认隔离
 
 - 每次 run 使用复制的 workspace、plugin home、config 和 HOME。
-- Channel 使用 recording sink，不连接正式 QQ、Telegram、Mobile 或 Web delivery owner。
 - LLM、embedding、MCP、HTTP、GitHub、browser 和 package manager 使用 recording/deny adapter。
 - shell 运行在复制目录与受控 process owner 中。
 - `plugin_undo` 只操作复制的 SessionDB 与 memory state。
@@ -508,7 +499,6 @@ stable/latest pointer 只恢复代码和运行时选择，不撤销已经发生�
 
 ### Phase 7：完整 UI、shadow 与发布
 
-- 对齐 desktop/mobile plugin roster、RPC、navigation、assets 和 render。
 - 在复制生产状态、禁止真实发送的环境完成长时 shadow。
 - 按现有 parent Turn candidate rollout 做最后一次 previous recovery，再批准正式切换。
 

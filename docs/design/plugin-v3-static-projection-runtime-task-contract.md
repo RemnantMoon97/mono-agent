@@ -53,7 +53,6 @@ client_only_alternative: "Not applicable; Skill and Dashboard publication happen
 - Core 在任何 Skill catalog 或 Root apply 前绑定 static services。predicate 为 false 时不执行
   插件 `apply`，但 Fiber 本身正常 ready，并把 `static_active=false` 纳入 topology identity。
 - `RuntimeSnapshot.composition_active_plugin_ids` 从 exact Root 冻结；Dashboard、Skill promotion、
-  mobile/runtime inspection 等 publication consumer 不重新读取 original module 全局。
 - inactive v3 generation 不进入 Skill roots、ignored roots 或重名检查；v2 的既有动态
   `is_active()` 行为保持不变，直到最终删除。
 - v3 Dashboard 的 `workspace/data_root/validation` 从 snapshot exact Root 的

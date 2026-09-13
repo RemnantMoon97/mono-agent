@@ -2,7 +2,6 @@
 
 - 状态：accepted
 - 日期：2026-09-09
-- 范围：Tools、Delivery、Wake、scheduler、subagent、Mobile command、Models
 - 取代：旧执行合同中的 `unknown`、`outcome_unknown`、`delivery_unknown`、`uncertain` 状态
 
 ## 问题与选择
@@ -24,7 +23,6 @@ Delivery 却继续把它当待恢复状态；Wake 不关闭领域领取，schedu
 | Delivery、Channel | `rejected` | 有明确未发送证据；只有这一失败允许现有显式 retry 重新准备 |
 | Delivery、Channel | `failed` | 本次发送失败；保留错误及已确认的 provider IDs，不自动重发 |
 | Models | `success / error` | 本次调用正常返回或失败；usage 和耗时只记录实际已知值 |
-| Mobile command | `completed` | 已保存正常成功或错误回复；相同 command ID 复用该回复 |
 
 `started`、`prepared`、`processing` 是 owner 正在处理的阶段，不是新的失败桶。
 插件 apply 和 channel start 也用于热重载，不能据此认定旧 generation 的调用已经死亡。
@@ -65,13 +63,11 @@ Delivery 却继续把它当待恢复状态；Wake 不关闭领域领取，schedu
   这些操作不产生 delivered 或来源 ACK，也不自动重新选择同一失败 revision。
 - scheduler：一次 fire 的全部发送完成后保存 delivered 或 failed；失败不永久保留 pending。
 - subagent：结果通知返回终态后关闭该次回传；失败留下发送回执与诊断，不再次生成或发送原结果。
-- Mobile：只在原 command 的恢复路径确认没有活跃 owner 后生成 `command_interrupted` 错误。
   只有 Message 和 durable handoff 都不存在且没有已执行证据时，才提示可以安全重试。
 
 ## 持久化与迁移
 
 `20260909_02_execution_failures` 在正式 workspace 独占锁下迁移四个 owner 的旧表：
-Mobile command、Models 调用账、Wake attempt v8→v9、旧 Core Delivery v1→v2。
 它先等待 `20260909_01_close_empty_wake_responses` 补齐旧空响应的失败 Control，
 再解释 attempt 旧状态，避免先改状态而遗漏原恢复候选。
 每个数据库先验证已知 schema 和完整性，再用 SQLite backup 保存受保护的恢复目录、数据库与 manifest。
@@ -80,7 +76,6 @@ Mobile command、Models 调用账、Wake attempt v8→v9、旧 Core Delivery v1�
 
 Message 正文正常路径仍只追加。旧 ToolResult `unknown` 和 Message owner 回执只在读取边界
 解释为 error/failed，磁盘原值和原正文不改写；新公共类型不再接受 unknown。
-失败发送不减少 Message、附件、领域输入或回执。Mobile completed 仍采用原 7 天保留合同，
 processing 和尚未完成的 handoff 不因此次变更获得 TTL 删除权限。
 
 本轮只交付 Core 代码和一次性测试库演练；正式 workspace 未迁移、PR 未合并、服务未部署。

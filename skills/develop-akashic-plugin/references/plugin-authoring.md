@@ -119,7 +119,6 @@ async def apply(ctx: Context, config: object) -> None:
 | `MCP_SERVERS` | 注册 MCP command、工具和 candidate endpoint | `McpServerDefinition` |
 | `MANAGED_PROCESSES` | 注册进程、端口和 readiness | `ManagedProcessDefinition` |
 | `BACKGROUND_JOBS` | 注册 interval 或 programmatic Turn job | `BackgroundJobDefinition` |
-| `UI_SLOTS` | 注册移动 UI 资源和查询 handler | `MobileUiDefinition` |
 | `SESSION_READ` | 读取既有 Session 的脱离快照 | `SessionReadService` |
 | `EMBEDDINGS` | 描述或调用用户选择的 embedding 模型 | `Embeddings` |
 | `CONVERSATION_SEMANTIC_INTEREST` | 提供或消费会话语义兴趣评分 | `ConversationSemanticInterest` |
@@ -240,7 +239,6 @@ Channel 通过 `ChannelDefinition` 声明 `capabilities`、`factory_export`、�
 
 事件使用 typed event key：`ctx.on(key, listener)` 返回由当前 Fiber 持有的 Effect；同步传播使用 `emit`，有序结果使用 `serial`，并行使用 `parallel`，类型变换使用 `transform`，只读观察使用 `observe`。不要自行建立 priority、listener DAG 或第二个事件总线。
 
-移动 UI 使用 `UI_SLOTS.register_mobile(ctx, MobileUiDefinition(...), query=...)`；资源路径必须在 source 内，RPC 边界校验 method、payload、session identity 和返回体大小。查询结果是 generation 投影，不是服务端权威事实。
 
 ### 3.4 Skill 与 workspace data
 

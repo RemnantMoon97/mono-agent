@@ -106,7 +106,6 @@ schema_lineages: []
 ## Final evidence
 
 - 源码基线：`f2e8dd023b0cab188726f2bfe51d5190f03c6cce`；实施 worktree：`/mnt/data/coding/akasic-agent-worktrees/plugin-composition-kernel`。
-- 聚焦组合测试：`32 passed`；旧插件、hot-reload、snapshot、control lineage 与 mobile plugin scheduler 回归：`378 passed`。
 - 新增代码、实验和测试的 Basedpyright：`0 errors, 0 warnings`；相关 `compileall` 与 `git diff --check` 通过。
 - 隔离运行：`run_id=2a271aeb-48cf-494b-ae6c-2c95415d9b3d`，workspace 为 `/tmp/akashic-plugin-composition-final.SSJoyp/workspace`，晋升 snapshot 为 `f65425e0540e6e0f`；最终 Fiber、Service、Effect 全为空，外部效果为空。
 - `strace -f -e trace=%file` 记录 5704 行文件系统调用，没有命中正式 workspace 或 plugin home 的写型 syscall；两棵正式状态树的前后元数据指纹分别保持 `a28ed15820e42579964008811ea3803d78adddd3153157a586a66d8a080cffa9` 与 `75b19c7f6d421fca3e20a732f975e416f545f14924df71d10eeadf03722e02db`。

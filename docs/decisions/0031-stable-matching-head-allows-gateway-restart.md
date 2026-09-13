@@ -2,9 +2,7 @@
 
 - 状态：accepted / implemented
 - 日期：2026-08-09
-- 修订：[0029 · main Gateway 对账移动 WebUI Stable](0029-main-gateway-reconciles-mobile-webui-stable.md)
 - 关联条款：WEBUI-004～WEBUI-006、GOV-005、TST-006～TST-008
-- 设计：[服务端发布的移动 WebUI OTA](../design/server-published-mobile-webui.md)
 
 ## 背景
 

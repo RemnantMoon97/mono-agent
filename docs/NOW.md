@@ -2,17 +2,11 @@
 
 这份文件只保存 mono-agent 当前仍未完成的工作。事项完成后删除，不保留“已完成”记录。
 
-## P0 · Akashic Channel 与 Web/Mobile Adapter 实现
 
-[Akashic Channel 与 Web/Mobile Adapter 规格](design/akashic-channel-client-adapters.md) 已确认
 一个 Core `akashic` Channel、两个薄 adapter 和一次 breaking rekey。实现已获授权，当前核对
-Session/Message 全身份迁移、配置、Akasha 和 Android 强制全量同步；不得直接迁正式 workspace。
 
-## P1 · 移动端主题 token 边界
 
-[`移动端投影审计 D2`](design/mobile-projection-audit.md) 已确认原生壳 Compose 色板与 Core WebUI CSS token 是两个渲染层的表示，不是重复 owner。仍需决定色值一致性由构建期产物还是显式 token 边界保证。
 
-- 移动端用户 checkout 存在未提交 Theme diff（Theme.kt 等 5 个文件）；D2 决策（原生壳与 WebUI token 边界）完成前不得合入。
 
 ## P0 · 插件递归自验证
 

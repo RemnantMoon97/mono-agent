@@ -8,7 +8,6 @@
 
 ## 背景
 
-一次 Shell 命令成功完成并生成最终回复后，回复已经写入 SessionDB 并发布 `TurnCommitted`。随后 AgentLoop 在外层 `finally` 回收 execution；进程组中只剩由 Boot Guardian 收养的其他 UID zombie 时，`killpg` 返回 `EPERM`。工具层已经把第一次错误转换给 Agent，但外层 cleanup 再次抛出，控制面因此把已提交 turn 标记为 failed，移动端只显示通用错误。
 
 Linux zombie 不能由 `kill` 消灭，只能由父进程或 subreaper `wait`。不同 UID 只决定 `killpg` 是否显式暴露 `EPERM`，不是 zombie 泄漏的必要条件。
 

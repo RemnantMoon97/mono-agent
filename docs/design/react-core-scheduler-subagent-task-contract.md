@@ -278,7 +278,6 @@ S3 实施证据：基线 `787dbfcb`；Core `TIMERS` 不知道 cron、job、sourc
 
 ### S4 收窄合同与实施证据
 
-S4 以 `e7844474` 为基线，`semantic_delta: breaking`，仅对应下文明确列出的配置键迁移。Core 只新增来源无关的 formal Runtime Root start/stop 生命周期，并用 snapshot lease 跟随 stable Root 热重载；它不知道 Scheduler、cron、misfire 或 job。Scheduler 插件私有 runtime 成为 `schedules.json`、recurrence、misfire、wait、SOFT Turn、delivery 和 settlement 的唯一生产 owner，旧 `SchedulerService`、`agent/tools/schedule.py` 和 bootstrap runtime binding 已物理删除；移动端只读投影通过同一个严格 `JobStore` schema 读取，不获得执行或删除能力。
 
 确定性 fixture 覆盖 instant/SOFT、one-shot/every/cron、capacity-before-write、misfire grace/expired、restart、delivery rejection、空 SOFT terminal、cancel/dispose、disabled no-work 和真实 v3 candidate/publish 热重载；旧 Root wait 归零后新 Root 恰好挂载一个 wait。S4 定向回归为 `244 passed`，聚焦 Pyright 为 `0 errors`。最终全量 pytest 与 Change Gate 证据只记录在 PR，避免文档回填改变 Gate source digest。未连接正式 workspace、真实 model/provider/channel，也未修改 Proactive/Wake/Drift 任何状态或 owner。
 
