@@ -127,6 +127,7 @@
 | Companion 安全、容量和长时运行 Edge Case | `projectneed` SEC-001～SEC-010 → [0017](decisions/0017-one-person-companion-security-boundary.md) → [Companion 安全边界与 Edge Case 实施设计](design/security-scan-edge-cases.md) → [持久化状态地图](design/persistence-state-map.md) | 相关 D1～D9 owner、`tests_scenarios/contracts/`、`docker/debug/gate.py` |
 | Harness benchmark、独立 runtime trial、证据驱动优化 | `projectneed` 第 8～13、15 节 → [V4 Flash Harness Benchmark 设计](spark/2026-07-30-v4flash-harness-benchmark-design.md) → [Benchmark 诊断循环设计](spark/2026-07-30-agent-benchmark-diagnostic-loop-design.md) → [0010](decisions/0010-provider-default-output-and-benchmark-diagnostics.md) → [0011](decisions/0011-benchmark-concurrency-six.md) → [实验 ledger](benchmark/v4flash-harness-experiment-ledger.md) → [运行审计](benchmark/terminalbench-2.1-run-audit-2026-08-05.md) → [逐题 CSV](benchmark/terminalbench-2.1-case-results-2026-08-05.csv) → [持久化状态地图](design/persistence-state-map.md) | `benchmark/harbor_v4flash/`、`agent/control/`、`bootstrap/`、`docker/debug/`、独立 artifact store 与 experiment ledger |
 | Shell、长任务、PTY、进程续接或轮询 | `projectneed` SH-001、RUN-002～RUN-003、ERR-001 → [0014](decisions/0014-shell-uses-unified-execution.md) → [Unified Shell Execution 设计](design/unified-shell-execution.md) | `plugins/standard_tools/shell.py`、`plugins/standard_tools/shell_backend.py`、`agent/tools/unified_exec.py`、`plugins/subagent/plugin.py`、`bootstrap/tools.py` |
+| 编辑后执行验证命令、Action Fusion 适配 | [Action Fusion 适配评估与实施计划（proposed）](design/action-fusion-implementation-plan.md) → [0062](decisions/0062-tools-flow-through-provider-views.md) → [0063](decisions/0063-execution-failures-have-terminal-results.md) | `plugins/standard_tools/`、`plugins/tools/`、`agent/tools/filesystem.py`、`plugins/compaction/` |
 | 新增或修改项目文档 | 本索引 → [`writing-rules.md`](writing-rules.md) → 目标文档的权威上游 | 所有相对链接、重复规则、过时入口和 Git diff |
 
 任务同时命中两行以上、会修改持久数据或会产生外部不可逆效果时，读取 `projectneed.md` 全文。执行阶段可以收窄材料，评审阶段必须展开所有相关 diff、状态变化和证据。
@@ -248,6 +249,7 @@ docs/
 │   ├── 0060-message-plugin-metadata.md
 │   └── 0061-archive-stopped-legacy-executions.md
 ├── design/
+│   ├── action-fusion-implementation-plan.md
 │   ├── akasha-v2-runtime-migration.md
 │   ├── akashic-channel-client-adapters.md
 │   ├── akashic-paper-brand-system.md
