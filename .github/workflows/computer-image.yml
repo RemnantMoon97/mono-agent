@@ -35,7 +35,7 @@ jobs:
           context: .
           file: docker/computer/Dockerfile
           push: true
-          tags: ghcr.io/kachofugetsu09/akashic-computer:sha-${{ github.sha }}
+          tags: ghcr.io/remnantmoon97/mono-agent-computer:sha-${{ github.sha }}
           labels: org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
