@@ -1,6 +1,4 @@
-[![欢迎加入交流群](https://img.shields.io/badge/QQ%E4%BA%A4%E6%B5%81%E7%BE%A4-%E6%AC%A2%E8%BF%8E%E5%8A%A0%E5%85%A5-2ea44f?style=for-the-badge)](./COMMUNICATION.md)
-
-# akashic Agent
+# mono-agent
 
 一个**会主动找你**的 AI 伙伴——不只是被动回答问题，还能根据你订阅的信息源主动判断"现在该不该发消息、发什么"，在空闲时自主执行后台任务。
 
@@ -184,7 +182,7 @@ supervisor；需要直接调试 child 时把程序参数设为 `gateway`。也�
 
 ## 用 Android 手机接入
 
-Akashic Mobile 是一个通过独立实时网关连接 Akashic Agent 的 Android 客户端。远程接入推荐使用 Cloudflare Tunnel：Web Chat 和模型设置继续留在本机 `127.0.0.1:2236`，Tunnel 只转发由 Akashic 设备认证保护的 `6323` 端口。
+Akashic Mobile 是一个通过独立实时网关连接 mono-agent 的 Android 客户端。远程接入推荐使用 Cloudflare Tunnel：Web Chat 和模型设置继续留在本机 `127.0.0.1:2236`，Tunnel 只转发由 Akashic 设备认证保护的 `6323` 端口。
 
 ```text
 1. 在 config.toml 启用 [mobile_realtime]

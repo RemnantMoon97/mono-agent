@@ -89,7 +89,7 @@ driver 源码通过只读挂载进入测试容器。基线源码与恢复点在�
 ## 源码版对照
 
 `--driver source` 使用已构建镜像中的正式 `/driver/run`；不挂入另一个 driver host，也不加载
-Akashic Agent。`source_adapter.py` 只绑定上游动作：option 使用 selectOption，带类型的 input
+mono-agent。`source_adapter.py` 只绑定上游动作：option 使用 selectOption，带类型的 input
 使用 fill，其他元素点击使用 locator，坐标动作使用 native desktop。与原版 Browser + Sky
 对比使用同一绑定；不改变题目、原解法或判分器。
 

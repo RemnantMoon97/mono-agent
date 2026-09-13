@@ -11,7 +11,7 @@ from adapter import GatewaySession
 
 class SourceSession(GatewaySession):
     async def run_code(self, code="", *, end_turn=False):
-        """只通过正式 gateway 执行，夹具身份不加载 Akashic Agent。"""
+        """只通过正式 gateway 执行，夹具身份不加载 mono-agent。"""
         payload = {
             "context": {
                 "session_id": "cua-fixture",

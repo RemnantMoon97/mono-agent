@@ -1,4 +1,4 @@
-# Akashic Agent 开发工作流
+# mono-agent 开发工作流
 
 `WORKFLOW.md` 是一份从接手任务到提交评审的执行手册。长期产品语义由 [`projectneed.md`](projectneed.md) 负责，当前未完成事项由 [`NOW.md`](NOW.md) 负责。
 

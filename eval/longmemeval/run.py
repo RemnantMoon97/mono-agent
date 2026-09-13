@@ -56,7 +56,7 @@ logger = logging.getLogger("eval.longmemeval")
 
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        description="Run LongMemEval benchmark against the akashic agent runtime."
+        description="Run LongMemEval benchmark against the mono-agent runtime."
     )
     p.add_argument("--config", required=True, type=Path, help="Path to config.toml")
     p.add_argument(

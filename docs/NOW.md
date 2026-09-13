@@ -1,6 +1,6 @@
 # NOW
 
-这份文件只保存 Akashic Agent 当前仍未完成的工作。事项完成后删除，不保留“已完成”记录。
+这份文件只保存 mono-agent 当前仍未完成的工作。事项完成后删除，不保留“已完成”记录。
 
 ## P0 · Akashic Channel 与 Web/Mobile Adapter 实现
 

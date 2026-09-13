@@ -25,7 +25,7 @@ consumer 为该插件工具与容器内调用者；`runtime_patch: false`。插�
 ## 2. 目标结构
 
 ```text
-Akashic Agent
+mono-agent
       │
 Computer 插件：工具与调用生命周期
       │

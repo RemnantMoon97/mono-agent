@@ -1,10 +1,10 @@
 # Akashic Mobile 接入手册
 
-Akashic Mobile 是一个通过独立实时网关连接 Akashic Agent 的 Android 应用。本手册面向维护者和自动化 agent，使用 Cloudflare Tunnel 发布移动实时网关，并保留 Akashic 自己的扫码、确认码和设备密钥认证。
+Akashic Mobile 是一个通过独立实时网关连接 mono-agent 的 Android 应用。本手册面向维护者和自动化 agent，使用 Cloudflare Tunnel 发布移动实时网关，并保留 Akashic 自己的扫码、确认码和设备密钥认证。
 
 ## 1. 接入结构
 
-Akashic Agent 提供两个用途明确的端口。`2236` 是本机唯一 Web 入口，承载 Chat、设置、Dashboard 和配对管理页面；`6323` 承载手机使用的 WSS 实时协议与同源 HTTPS 插件查询。Cloudflare 只转发 `6323`。
+mono-agent 提供两个用途明确的端口。`2236` 是本机唯一 Web 入口，承载 Chat、设置、Dashboard 和配对管理页面；`6323` 承载手机使用的 WSS 实时协议与同源 HTTPS 插件查询。Cloudflare 只转发 `6323`。
 
 ```text
 ┌────────────┐  本机 HTTP   ┌────────────────────────┐
@@ -25,7 +25,7 @@ Cloudflare Tunnel 由本机的 `cloudflared` 主动向 Cloudflare 建立出站�
 
 ## 2. 准备条件
 
-- 一台持续运行 Akashic Agent 的 Linux 主机。
+- 一台持续运行 mono-agent 的 Linux 主机。
 - 一个已经接入 Cloudflare DNS 的域名，例如 `example.com`。
 - 可用且已解锁的 Linux Secret Service。移动网关只支持 `secret_service` 保存主密钥；服务不可用或 collection 被锁定时会明确启动失败。
 - 一台能安装当前 Akashic Mobile APK 的 Android 手机。

@@ -1,4 +1,4 @@
-# Akashic Agent 持久化状态地图
+# mono-agent 持久化状态地图
 
 - 状态：accepted target / implementation
 - 核对基线：`origin/main@31b976d82cbd5766e6450d7e287ceda71d9b7573`

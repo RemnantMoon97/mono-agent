@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software in your research, please cite it using the metadata below."
-title: "Akashic Agent"
+title: "mono-agent"
 authors:
   - family-names: "Wang"
     given-names: "Yuanzhe"
@@ -24,7 +24,7 @@ preferred-citation:
     - family-names: "Wang"
       given-names: "Yuanzhe"
       alias: "kachofugetsu09"
-  title: "Akashic Agent: An Extensible Agent Framework with Persistent Memory and Proactive Perception"
+  title: "mono-agent: An Extensible Agent Framework with Persistent Memory and Proactive Perception"
   version: "v0.1.1"
   year: 2026
   publisher: "GitHub"

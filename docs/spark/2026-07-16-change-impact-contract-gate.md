@@ -7,7 +7,7 @@
 
 ## 1. 结论
 
-Akashic Agent 使用一个统一 Gate 收口代码变更：实现者只运行一个入口，Gate 根据 Git diff 和公开能力索引选择确定性 Docker 场景，再由 private runtime 把受影响能力映射到真实外置 provider。无法解释的可执行代码改动不得静默跳过，必须回退全量场景并使影响分析失败，直到补齐映射。
+mono-agent 使用一个统一 Gate 收口代码变更：实现者只运行一个入口，Gate 根据 Git diff 和公开能力索引选择确定性 Docker 场景，再由 private runtime 把受影响能力映射到真实外置 provider。无法解释的可执行代码改动不得静默跳过，必须回退全量场景并使影响分析失败，直到补齐映射。
 
 Gate 启用前先对现有仓库执行一次审计式 `init`：完整盘点代码、状态、需求、测试和 provider，要求 P0 语义零缺口；非 P0 现存缺口经维护者确认后进入只减不增的 coverage baseline。后续改动一旦触碰已有缺口，就必须补 oracle，不能继续沿用基线豁免。
 

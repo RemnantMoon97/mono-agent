@@ -146,7 +146,7 @@ PR #111 同时处理 runtime、memory、plugin、scheduler、filesystem、前端
 - 本轮不把所有项目历史装入每次 agent 上下文。
 - 本轮不建立复杂的文档生成平台或新数据库。
 - 本轮不依赖另一个 LLM 对实现做主观批准。
-- 本轮不改变 Akashic Agent 的持久会话保留和显式删除语义。
+- 本轮不改变 mono-agent 的持久会话保留和显式删除语义。
 
 ### 4.3 从协作原理到工程机制
 
